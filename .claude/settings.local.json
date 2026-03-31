@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/wenxiong.yao/.claude/projects/C--Users-wenxiong-yao-Naitei/**)",
+      "Read(//c/Users/wenxiong.yao/.claude/projects/C--Users-wenxiong-yao-Naitei/memory/**)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(vercel --version)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
