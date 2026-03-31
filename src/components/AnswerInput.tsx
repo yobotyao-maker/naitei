@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Lang } from '@/lib/prompts'
 
-// 浏览器 SpeechRecognition 类型声明
 declare global {
   interface Window {
     SpeechRecognition: any
@@ -10,12 +9,17 @@ declare global {
   }
 }
 
-export default function AnswerInput({ question, lang, onSubmit }: { question: string; lang: Lang; onSubmit: (a: string) => void }) {
+export default function AnswerInput({ question, lang, onSubmit }: {
+  question: string
+  lang: Lang
+  onSubmit: (a: string) => void
+}) {
   const [answer, setAnswer] = useState('')
   const [recording, setRecording] = useState(false)
   const [showText, setShowText] = useState(false)
   const [unsupported, setUnsupported] = useState(false)
   const recognitionRef = useRef<any>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -38,35 +42,36 @@ export default function AnswerInput({ question, lang, onSubmit }: { question: st
     return () => { r.abort() }
   }, [lang])
 
+  useEffect(() => {
+    if (showText) setTimeout(() => textareaRef.current?.focus(), 100)
+  }, [showText])
+
   const toggleRecording = () => {
     const r = recognitionRef.current
     if (!r) return
-    if (recording) {
-      r.stop()
-      setRecording(false)
-    } else {
-      setAnswer('')
-      r.start()
-      setRecording(true)
-    }
+    if (recording) { r.stop(); setRecording(false) }
+    else { setAnswer(''); r.start(); setRecording(true) }
   }
 
-  return (
-    <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-      <p className="text-sm text-gray-400 mb-2">質問</p>
-      <p className="text-sm text-gray-700 mb-6 leading-relaxed">{question}</p>
+  const remaining = 500 - answer.length
+  const canSubmit = answer.trim().length >= 20 && !recording
 
-      {/* 语音录入区 */}
+  return (
+    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+      <div className="bg-gray-50 rounded-2xl p-4 mb-5">
+        <div className="text-xs text-gray-400 mb-1">
+          {lang === 'ja' ? '面接質問' : '面试题'}
+        </div>
+        <p className="text-sm text-gray-700 leading-relaxed">{question}</p>
+      </div>
+
+      {/* 语音录入 */}
       {!unsupported && (
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-5">
           <button
             onClick={toggleRecording}
-            disabled={false}
             className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all shadow-md
-              ${recording
-                ? 'bg-red-500 hover:bg-red-600 animate-pulse'
-                : 'bg-[#2D5BE3] hover:bg-blue-700'
-              } disabled:bg-gray-200`}
+              ${recording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-[#2D5BE3] hover:bg-blue-700'}`}
           >
             {recording ? '⏹' : '🎙️'}
           </button>
@@ -83,33 +88,46 @@ export default function AnswerInput({ question, lang, onSubmit }: { question: st
         </div>
       )}
 
-      {/* 文字输入（测试用，默认折叠） */}
+      {/* 文字输入（折叠） */}
       <div className="border-t border-gray-100 pt-4">
         <button
           onClick={() => setShowText(v => !v)}
           className="text-xs text-gray-300 hover:text-gray-400 transition-colors w-full text-center"
         >
-          {unsupported ? '⚠️ 此浏览器不支持语音，请使用文字输入' : (showText ? '▲ 收起文字输入' : '▼ 文字输入（测试用）')}
+          {unsupported
+            ? '⚠️ 此浏览器不支持语音，请使用文字输入'
+            : (showText ? '▲ 收起文字输入' : '▼ 文字输入（测试用）')}
         </button>
         {showText && (
-          <div className="mt-3">
+          <div className="mt-3 relative">
             <textarea
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition resize-none"
-              rows={5}
+              ref={textareaRef}
+              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition resize-none leading-relaxed"
+              rows={6}
               maxLength={500}
-              placeholder="文字で回答を入力（テスト用）"
+              placeholder={lang === 'ja'
+                ? 'STAR形式（状況・課題・行動・結果）で回答すると高評価になります'
+                : '建议用 STAR 格式（情景·任务·行动·结果）回答，评分更高'}
               value={answer}
               onChange={e => setAnswer(e.target.value)}
             />
-            <span className="text-xs text-gray-300">{answer.length}/500</span>
+            <span className={`absolute bottom-3 right-3 text-xs ${remaining < 50 ? 'text-orange-400' : 'text-gray-300'}`}>
+              {remaining}
+            </span>
           </div>
         )}
       </div>
 
+      {!canSubmit && answer.length > 0 && !recording && (
+        <p className="text-xs text-orange-400 mt-2">
+          {lang === 'ja' ? 'もう少し詳しく書いてください（20字以上）' : '请至少输入 20 个字符'}
+        </p>
+      )}
+
       <button
-        onClick={() => answer.trim() && onSubmit(answer)}
-        disabled={!answer.trim() || recording}
-        className="mt-5 w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-3.5 rounded-xl transition-colors"
+        onClick={() => canSubmit && onSubmit(answer)}
+        disabled={!canSubmit}
+        className="mt-4 w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
       >
         採点してもらう →
       </button>
