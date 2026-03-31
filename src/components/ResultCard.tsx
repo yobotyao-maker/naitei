@@ -1,5 +1,6 @@
 import type { Lang } from '@/lib/prompts'
 import { MAX_QUESTIONS, levelColor, levelLabel } from '@/lib/constants'
+import BenchmarkCard from './BenchmarkCard'
 
 interface Props {
   result: any
@@ -80,6 +81,10 @@ export default function ResultCard({ result, jobRole, lang, questionCount, onCon
         >
           继续面试 →
         </button>
+      </div>
+
+      <div className="mt-4">
+        <BenchmarkCard jobRole={jobRole} userScore={result.score} />
       </div>
 
       <div className="text-center text-xs text-gray-300 mt-4">naitei.ai · AIで内定を掴もう</div>
