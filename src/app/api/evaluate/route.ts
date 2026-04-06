@@ -43,6 +43,16 @@ export async function POST(req: NextRequest) {
         level: result.level,
         feedback: result.feedback
       })
+
+      // 附带剩余回数，供前端显示提示
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan, interviews_used, interviews_limit')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (sub && sub.plan !== 'pro') {
+        result.remaining = Math.max(0, sub.interviews_limit - sub.interviews_used)
+      }
     }
 
     return NextResponse.json(result)

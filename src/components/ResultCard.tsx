@@ -87,6 +87,23 @@ export default function ResultCard({ result, jobRole, lang, questionCount, onCon
         <BenchmarkCard jobRole={jobRole} userScore={result.score} />
       </div>
 
+      {typeof result.remaining === 'number' && result.remaining <= 2 && result.remaining > 0 && (
+        <div className="mt-4 bg-orange-50 rounded-xl px-4 py-3 text-center">
+          <p className="text-xs text-orange-500 font-medium">
+            残り <span className="text-base font-bold">{result.remaining}</span> 回
+          </p>
+          <p className="text-xs text-orange-400 mt-0.5">
+            足りなくなったら ¥980 でいつでも +5回 追加できます
+          </p>
+        </div>
+      )}
+      {typeof result.remaining === 'number' && result.remaining === 0 && (
+        <div className="mt-4 bg-blue-50 rounded-xl px-4 py-3 text-center">
+          <p className="text-xs text-blue-500 font-medium">練習回数を使い切りました</p>
+          <p className="text-xs text-blue-400 mt-0.5">¥980 で +5回 追加できます</p>
+        </div>
+      )}
+
       <div className="text-center text-xs text-gray-300 mt-4">naitei.ai · AIで内定を掴もう</div>
     </div>
   )

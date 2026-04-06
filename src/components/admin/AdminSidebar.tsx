@@ -1,0 +1,53 @@
+'use client'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import LogoutButton from '@/components/LogoutButton'
+import Image from 'next/image'
+
+const NAV = [
+  { href: '/admin',            label: 'ダッシュボード' },
+  { href: '/admin/users',      label: 'ユーザー管理'   },
+  { href: '/admin/plans',      label: 'プラン管理'     },
+  { href: '/admin/interviews', label: '面接記録'       },
+  { href: '/admin/orders',     label: '注文明細'       },
+  { href: '/admin/admins',     label: '管理者設定'     },
+]
+
+export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
+  const pathname = usePathname()
+
+  return (
+    <aside className="w-52 shrink-0 min-h-screen bg-white border-r border-gray-100 flex flex-col">
+      <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2">
+        <Image src="/logo.svg" alt="" width={28} height={28} />
+        <span className="text-sm font-semibold text-gray-900 tracking-tight">Admin</span>
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {NAV.map(n => {
+          const active = n.href === '/admin'
+            ? pathname === '/admin'
+            : pathname.startsWith(n.href)
+          return (
+            <Link
+              key={n.href}
+              href={n.href}
+              className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                active
+                  ? 'bg-blue-50 text-[#2D5BE3] font-medium'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              {n.label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="px-5 py-4 border-t border-gray-100">
+        <div className="text-xs text-gray-400 truncate mb-2">{adminEmail}</div>
+        <LogoutButton className="text-xs text-gray-400 hover:text-gray-600 transition-colors" />
+      </div>
+    </aside>
+  )
+}

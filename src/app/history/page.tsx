@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import { redirect } from 'next/navigation'
 
 const levelColor: Record<string, string> = {
@@ -31,9 +32,7 @@ export default async function HistoryPage() {
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Link href="/" className="text-gray-900 font-medium text-lg">
-            naitei<span className="text-[#2D5BE3]">.ai</span>
-          </Link>
+          <Logo />
           <Link href="/interview" className="bg-[#2D5BE3] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">
             + 新しい練習
           </Link>

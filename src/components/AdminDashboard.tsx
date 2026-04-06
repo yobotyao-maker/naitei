@@ -1,0 +1,244 @@
+'use client'
+import { useEffect, useRef } from 'react'
+
+type Stats = {
+  total_users:      number
+  total_interviews: number
+  pack_users:       number
+  pro_users:        number
+  pack_revenue:     number
+  mrr:              number
+  level_dist:       Record<string, number>
+  top_roles:        Array<{ role: string; cnt: number }>
+  daily_7d:         Array<{ day: string; cnt: number }>
+}
+
+const LEVEL_COLOR: Record<string, string> = {
+  S1: '#FCA5A5', S2: '#FCD34D', S3: '#93C5FD', S4: '#6EE7B7'
+}
+
+const PLAN_LABEL: Record<string, string> = { free: 'Free', pack: 'Pack', pro: 'Pro' }
+const PLAN_COLOR: Record<string, string> = {
+  free: 'text-gray-500 bg-gray-50',
+  pack: 'text-blue-600 bg-blue-50',
+  pro:  'text-yellow-600 bg-yellow-50',
+}
+
+export default function AdminDashboard({
+  stats, recent, users
+}: {
+  stats: Stats | null
+  recent: any[]
+  users:  any[]
+}) {
+  const chartRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (!chartRef.current || !stats?.daily_7d?.length) return
+    let chart: any
+
+    const load = async () => {
+      const Chart = (await import('chart.js/auto')).default
+      const days = stats.daily_7d ?? []
+
+      chart = new Chart(chartRef.current!, {
+        type: 'line',
+        data: {
+          labels: days.map(d => d.day),
+          datasets: [{
+            label: '面接数',
+            data: days.map(d => d.cnt),
+            borderColor: '#2D5BE3',
+            backgroundColor: 'rgba(45,91,227,0.08)',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: '#2D5BE3',
+            tension: 0.3,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { precision: 0, color: '#9CA3AF' },
+              grid:  { color: 'rgba(0,0,0,0.04)' },
+            },
+            x: {
+              ticks: { color: '#9CA3AF' },
+              grid:  { display: false },
+            }
+          }
+        }
+      })
+    }
+
+    load()
+    return () => { chart?.destroy() }
+  }, [stats])
+
+  const s = stats
+  const paidUsers  = (s?.pack_users ?? 0) + (s?.pro_users ?? 0)
+  const freeUsers  = (s?.total_users ?? 0) - paidUsers
+  const convRate   = s?.total_users ? (paidUsers / s.total_users * 100).toFixed(1) : '0'
+  const totalRev   = (s?.pack_revenue ?? 0) + (s?.mrr ?? 0)
+  const levelTotal = s ? Object.values(s.level_dist).reduce((a, b) => a + b, 0) : 1
+
+  return (
+    <>
+      {/* KPI 4格 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: '総ユーザー',  value: s?.total_users      ?? 0 },
+          { label: '総面接数',    value: s?.total_interviews  ?? 0 },
+          { label: '有料転換率',  value: `${convRate}%` },
+          { label: '累計収益',    value: `¥${totalRev.toLocaleString()}` },
+        ].map(k => (
+          <div key={k.label} className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
+            <div className="text-2xl font-medium text-gray-900">{k.value}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 收入细分 */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Free',                                value: freeUsers,                                     color: 'text-gray-500' },
+          { label: `Pack × ${s?.pack_users ?? 0}`,       value: `¥${(s?.pack_revenue ?? 0).toLocaleString()}`, color: 'text-blue-500' },
+          { label: `Pro MRR × ${s?.pro_users ?? 0}`,     value: `¥${(s?.mrr ?? 0).toLocaleString()}`,          color: 'text-yellow-500' },
+        ].map(k => (
+          <div key={k.label} className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
+            <div className={`text-xl font-medium ${k.color}`}>{k.value}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 趋势图 + 等级分布 */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+          <div className="text-sm font-medium text-gray-700 mb-4">直近7日の面接数</div>
+          {(stats?.daily_7d?.length ?? 0) > 0 ? (
+            <div style={{ position: 'relative', height: '140px' }}>
+              <canvas ref={chartRef} />
+            </div>
+          ) : (
+            <div className="h-36 flex items-center justify-center text-xs text-gray-300">
+              データが蓄積されると表示されます
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 border border-gray-100">
+          <div className="text-sm font-medium text-gray-700 mb-4">レベル分布</div>
+          <div className="space-y-3">
+            {['S1','S2','S3','S4'].map(lv => {
+              const cnt = s?.level_dist?.[lv] ?? 0
+              const pct = levelTotal > 0 ? Math.round((cnt / levelTotal) * 100) : 0
+              return (
+                <div key={lv} className="flex items-center gap-3">
+                  <span className="text-xs font-medium text-gray-600 w-6">{lv}</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, background: LEVEL_COLOR[lv] }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-400 w-12 text-right">{cnt}人 {pct}%</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 热门岗位 */}
+      <div className="bg-white rounded-2xl p-5 border border-gray-100">
+        <div className="text-sm font-medium text-gray-700 mb-4">人気ポジション TOP5</div>
+        {(s?.top_roles?.length ?? 0) > 0 ? (
+          <div className="space-y-2">
+            {s!.top_roles.map((r, i) => (
+              <div key={r.role} className="flex items-center gap-3">
+                <span className="text-xs text-gray-300 w-4">{i + 1}</span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-1.5 bg-[#2D5BE3] rounded-full"
+                    style={{ width: `${(r.cnt / (s!.top_roles[0]?.cnt ?? 1)) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-gray-600 truncate max-w-28">{r.role}</span>
+                <span className="text-xs text-gray-400 w-6 text-right">{r.cnt}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-300 text-center py-4">データなし</p>
+        )}
+      </div>
+
+      {/* 最近用户 */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">最近登録したユーザー</span>
+          <span className="text-xs text-gray-400">直近20件</span>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {users.length === 0 && (
+            <p className="text-xs text-gray-300 text-center py-6">ユーザーなし</p>
+          )}
+          {users.map(u => (
+            <div key={u.user_id} className="flex items-center justify-between px-5 py-3">
+              <div>
+                <span className="text-xs font-mono text-gray-400">{u.user_id.slice(0,8)}…</span>
+                <span className="text-xs text-gray-400 ml-2">
+                  {new Date(u.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400">
+                  {u.interviews_used} / {u.interviews_limit === 9999 ? '∞' : u.interviews_limit} 回
+                </span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PLAN_COLOR[u.plan] ?? 'text-gray-500 bg-gray-50'}`}>
+                  {PLAN_LABEL[u.plan] ?? u.plan}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 最近面试记录 */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">最近の面接記録</span>
+          <span className="text-xs text-gray-400">直近20件</span>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {recent.length === 0 && (
+            <p className="text-xs text-gray-300 text-center py-6">記録なし</p>
+          )}
+          {recent.map(item => (
+            <div key={item.id} className="flex items-center justify-between px-5 py-3">
+              <div>
+                <span className="text-sm text-gray-700">{item.job_role}</span>
+                <span className="text-xs text-gray-400 ml-2">
+                  {new Date(item.created_at).toLocaleDateString('ja-JP', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full">{item.level}</span>
+                <span className="text-sm font-medium text-gray-900">{item.score?.toFixed(1)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
