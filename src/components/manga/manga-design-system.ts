@@ -41,10 +41,12 @@ export interface Character {
   type: CharacterType;
   gender: Gender;
   personality: string;
+  animeStyle?: boolean; // true = anime SVG rendering
   questionCategories: QuestionCategory[]; // 此角色负责的问题类型
   colors: {
     skin: string;
     hair: string;
+    eyeColor?: string;   // iris color (anime characters)
     // 男性专用
     suit?: string;
     tie?: string;
@@ -52,7 +54,7 @@ export interface Character {
     // 女性专用
     jacket?: string;
     blouse?: string;
-    hairStyle?: 'short' | 'medium' | 'long' | 'bun'; // 发型
+    hairStyle?: 'short' | 'medium' | 'long' | 'bun' | 'twintails' | 'spiky' | 'flowing'; // 发型
     accessory?: 'earrings' | 'necklace' | 'none';
   };
   greetings: string[];
@@ -60,7 +62,7 @@ export interface Character {
 }
 
 // ─────────────────────────────────────────
-// 全角色定义（6名）
+// 全角色定义（9名：6名職場系 + 3名アニメ系）
 // ─────────────────────────────────────────
 export const CHARACTERS: Record<string, Character> = {
 
@@ -212,6 +214,101 @@ export const CHARACTERS: Record<string, Character> = {
     },
   },
 
+  // ── アニメ男性1：シニアエンジニア（銀髪スパイキー）───────────────
+  kiryu: {
+    id: 'kiryu',
+    name: '桐生先輩',
+    nameJa: '桐生 ケン',
+    role: 'シニアエンジニア',
+    type: 'technical',
+    gender: 'male',
+    animeStyle: true,
+    personality: 'クール・分析重視',
+    questionCategories: ['technical', 'algorithm'],
+    colors: {
+      skin: '#FDCFB8', hair: '#C8C8C8',
+      eyeColor: '#3A6A9A',
+      suit: '#0D1B2A', tie: '#00B4D8',
+    },
+    greetings: [
+      '…始めよう。技術を見せてもらう。',
+      'いいだろう。腕前を見せてみろ。',
+      '時間を無駄にしない。早速始めよう。',
+    ],
+    reactions: {
+      neutral:      ['…続けろ。', 'ふん。', '聞いている。'],
+      pleased:      ['…なかなかやるな。', '予想以上だ。', '認める。'],
+      strict:       ['甘い。', '根拠は？', '本質を見ろ。'],
+      surprised:    ['…っ！', 'そこに気づいたか。', 'なんだと…'],
+      thinking:     ['…', 'なるほど…', '計算中だ。'],
+      disappointed: ['…失望した。', '準備不足だ。', 'もう一度考えろ。'],
+    },
+  },
+
+  // ── アニメ女性1：HR担当（青いツインテール）──────────────────────
+  aoi: {
+    id: 'aoi',
+    name: '蒼井さん',
+    nameJa: '蒼井 アオイ',
+    role: '人事担当（新卒採用）',
+    type: 'hr',
+    gender: 'female',
+    animeStyle: true,
+    personality: '元気・共感重視',
+    questionCategories: ['culture', 'motivation', 'teamwork'],
+    colors: {
+      skin: '#FDDBD0', hair: '#1E8FE8',
+      eyeColor: '#0A7ADB',
+      jacket: '#8B5CF6', blouse: '#FFFFFF',
+      hairStyle: 'twintails', accessory: 'none',
+    },
+    greetings: [
+      'はじめまして！一緒に頑張りましょう！',
+      'わあ、よろしくお願いします！楽しみにしてました！',
+      '緊張しなくていいですよ！一緒に頑張りましょう！',
+    ],
+    reactions: {
+      neutral:      ['なるほど！', 'うんうん！', 'そうなんですね！'],
+      pleased:      ['わあ、素敵！', 'それは最高！', 'ぜひ来てほしい！'],
+      strict:       ['もう少し詳しく？', 'チームとはどうでしたか？', 'なぜですか？'],
+      surprised:    ['えっ！本当に！？', 'わあ！知らなかった！', 'それはすごい！'],
+      thinking:     ['うーん…', 'えっと…', 'んんん…'],
+      disappointed: ['あれ…', 'もうちょっとだったのに…', '次は頑張って！'],
+    },
+  },
+
+  // ── アニメ女性2：事業開発部長（ダークレッドの流れる髪）──────────
+  rei: {
+    id: 'rei',
+    name: '零部長',
+    nameJa: '零 レイ',
+    role: '事業開発部長',
+    type: 'executive',
+    gender: 'female',
+    animeStyle: true,
+    personality: '冷静・戦略重視',
+    questionCategories: ['vision', 'leadership', 'risk'],
+    colors: {
+      skin: '#F8C8A8', hair: '#8B1A1A',
+      eyeColor: '#6B1A1A',
+      jacket: '#1A1A1A', blouse: '#4A0A0A',
+      hairStyle: 'flowing', accessory: 'earrings',
+    },
+    greetings: [
+      'あなたの戦略的思考を見せてもらいます。',
+      '時間は限られている。本質だけ話しなさい。',
+      'あなたがリーダーになれるか、見極めます。',
+    ],
+    reactions: {
+      neutral:      ['そうですね。', '理解しました。', '続けて。'],
+      pleased:      ['それは見込みがある。', '戦略的ですね。', '採用を検討します。'],
+      strict:       ['なぜそう思う？', '数字は？', 'もっと深く考えなさい。'],
+      surprised:    ['…面白い視点ね。', 'それは想定外だった。', '…なるほど。'],
+      thinking:     ['…考えています。', '戦略的に言えば…', '少し待ちなさい。'],
+      disappointed: ['期待外れです。', 'もっとできるはずでしょう。', '準備が足りない。'],
+    },
+  },
+
   // ── 女性4：PMO ───────────────────────────────
   kobayashi: {
     id: 'kobayashi',
@@ -247,21 +344,21 @@ export const CHARACTERS: Record<string, Character> = {
 // 问题分类 → 角色映射表
 // ─────────────────────────────────────────
 export const CATEGORY_TO_CHARACTER: Record<QuestionCategory, string> = {
-  technical:     'tanaka',
-  algorithm:     'tanaka',
-  system_design: 'tanaka',
-  culture:       'yamamoto',
-  motivation:    'yamamoto',
-  self_pr:       'sato',
-  teamwork:      'sato',
-  process:       'nakamura',
-  agile:         'nakamura',
-  planning:      'nakamura',
-  governance:    'kobayashi',
-  risk:          'kobayashi',
-  compliance:    'kobayashi',
-  vision:        'suzuki',
-  leadership:    'suzuki',
+  technical:     'kiryu',      // アニメ：シニアエンジニア
+  algorithm:     'tanaka',     // 職場：技術部長
+  system_design: 'suzuki',     // 職場：CTO
+  culture:       'aoi',        // アニメ：HR担当
+  motivation:    'aoi',        // アニメ：HR担当
+  self_pr:       'sato',       // 職場：人事
+  teamwork:      'aoi',        // アニメ：HR担当
+  process:       'nakamura',   // 職場：PM
+  agile:         'nakamura',   // 職場：PM
+  planning:      'kobayashi',  // 職場：PMO
+  governance:    'kobayashi',  // 職場：PMO
+  risk:          'rei',        // アニメ：事業部長
+  compliance:    'kobayashi',  // 職場：PMO
+  vision:        'rei',        // アニメ：事業部長
+  leadership:    'rei',        // アニメ：事業部長
 };
 
 // 根据问题类别获取负责角色ID

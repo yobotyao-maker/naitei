@@ -10,6 +10,7 @@ import StepBar from '@/components/StepBar'
 import LoadingDots from '@/components/LoadingDots'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import type { Lang } from '@/lib/prompts'
+import { CATEGORY_TO_CHARACTER, type QuestionCategory } from '@/components/manga/manga-design-system'
 import LogoutButton from '@/components/LogoutButton'
 import Logo from '@/components/Logo'
 
@@ -34,47 +35,73 @@ export default function InterviewPage() {
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [currentAnswer, setCurrentAnswer] = useState('')
   const [quotaInfo, setQuotaInfo] = useState<{ used: number; limit: number }>({ used: 0, limit: 5 })
+  const [characterId, setCharacterId] = useState<string>('tanaka')
 
-  const fetchQuestion = async (role: string, exp: string, l: Lang, isFirst = false) => {
+  // 根据问题在会话中的位置轮换角色
+  function pickCharacter(index: number): string {
+    const rotation: QuestionCategory[] = [
+      'technical', 'culture', 'process', 'governance', 'vision',
+      'algorithm', 'motivation', 'agile', 'risk', 'leadership',
+    ]
+    const cat = rotation[index % rotation.length]
+    return CATEGORY_TO_CHARACTER[cat]
+  }
+
+  const fetchQuestion = async (role: string, exp: string, l: Lang, isFirst = false, questionIndex = 0) => {
+    const nextChar = pickCharacter(questionIndex)
+    setCharacterId(nextChar)
     setStep('loading-q')
-    const res = await fetch('/api/generate-question', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobRole: role, experience: exp, lang: l, isFirst })
-    })
-    const data = await res.json()
-    if (res.status === 402) {
-      setQuotaInfo({ used: data.used, limit: data.limit })
-      setStep('upgrade')
-      return
+    try {
+      const res = await fetch('/api/generate-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobRole: role, experience: exp, lang: l, isFirst, characterId: nextChar })
+      })
+      const data = await res.json()
+      if (res.status === 402) {
+        setQuotaInfo({ used: data.used, limit: data.limit })
+        setStep('upgrade')
+        return
+      }
+      if (!res.ok || !data.question) throw new Error(data.error ?? 'Failed to generate question')
+      setQuestion(data.question); setStep('question')
+    } catch {
+      setStep('form')
+      alert('質問の生成に失敗しました。もう一度お試しください。')
     }
-    setQuestion(data.question); setStep('question')
   }
 
   const handleStart = async (role: string, exp: string, l: Lang) => {
     setJobRole(role); setExperience(exp); setLang(l); setHistory([])
-    await fetchQuestion(role, exp, l, true)
+    await fetchQuestion(role, exp, l, true, 0)
   }
 
   const handleAnswer = async (answer: string) => {
     setCurrentAnswer(answer); setStep('loading-r')
-    const res = await fetch('/api/evaluate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobRole, question, answer, lang })
-    })
-    const data = await res.json()
-    if (res.status === 402) {
-      setQuotaInfo({ used: data.used, limit: data.limit })
-      setStep('upgrade')
-      return
+    try {
+      const res = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobRole, question, answer, lang, characterId })
+      })
+      const data = await res.json()
+      if (res.status === 402) {
+        setQuotaInfo({ used: data.used, limit: data.limit })
+        setStep('upgrade')
+        return
+      }
+      if (!res.ok) throw new Error(data.error ?? 'Failed to evaluate')
+      setResult(data); setStep('result')
+    } catch {
+      setStep('answer')
+      alert('採点に失敗しました。もう一度お試しください。')
     }
-    setResult(data); setStep('result')
   }
 
   const handleContinue = async () => {
+    const nextIndex = history.length + 1
     setHistory(prev => [...prev, { question, answer: currentAnswer, result }])
-    await fetchQuestion(jobRole, experience, lang)
+    await fetchQuestion(jobRole, experience, lang, false, nextIndex)
   }
 
   const handleFinish = () => {
@@ -103,7 +130,7 @@ export default function InterviewPage() {
 
         {step === 'form'      && <InterviewForm onSubmit={handleStart} />}
         {step === 'loading-q' && <LoadingDots label="AIが質問を考えています..." />}
-        {step === 'question'  && <QuestionCard question={question} jobRole={jobRole} lang={lang} onReady={() => setStep('answer')} />}
+        {step === 'question'  && <QuestionCard question={question} jobRole={jobRole} lang={lang} characterId={characterId} onReady={() => setStep('answer')} />}
         {step === 'answer'    && <AnswerInput question={question} lang={lang} onSubmit={handleAnswer} />}
         {step === 'loading-r' && <LoadingDots label="AIが採点しています..." />}
         {step === 'result'    && (
@@ -112,6 +139,7 @@ export default function InterviewPage() {
             jobRole={jobRole}
             lang={lang}
             questionCount={questionCount}
+            characterId={characterId}
             onContinue={questionCount < MAX_QUESTIONS ? handleContinue : handleFinish}
             onFinish={handleFinish}
           />

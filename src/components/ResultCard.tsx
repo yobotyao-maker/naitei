@@ -1,17 +1,22 @@
 import type { Lang } from '@/lib/prompts'
 import { MAX_QUESTIONS, levelColor, levelLabel } from '@/lib/constants'
 import BenchmarkCard from './BenchmarkCard'
+import { CHARACTERS } from '@/components/manga/manga-design-system'
+import { CharacterSVG } from '@/components/manga/CharacterSVG'
 
 interface Props {
   result: any
   jobRole: string
   lang: Lang
   questionCount: number
+  characterId?: string
   onContinue: () => void
   onFinish: () => void
 }
 
-export default function ResultCard({ result, jobRole, lang, questionCount, onContinue, onFinish }: Props) {
+export default function ResultCard({ result, jobRole, lang, questionCount, characterId, onContinue, onFinish }: Props) {
+  const char = characterId ? CHARACTERS[characterId] : undefined
+  const charMood = result.score >= 85 ? 'pleased' : result.score >= 65 ? 'neutral' : 'disappointed'
   const zhDimensions = [
     { label: '技術力', pct: result.technicalPct, raw: result.technical, max: 40, weight: '40%' },
     { label: '表現力', pct: result.expressionPct, raw: result.expression, max: 30, weight: '30%' },
@@ -34,6 +39,19 @@ export default function ResultCard({ result, jobRole, lang, questionCount, onCon
           {lang === 'ja' ? '🇯🇵 日本語' : '🇨🇳 中文'}
         </span>
       </div>
+
+      {/* キャラクター反応 */}
+      {char && (
+        <div className="flex items-end gap-3 mb-5">
+          <div className="flex flex-col items-center flex-shrink-0">
+            <CharacterSVG character={char} mood={charMood} size="sm" />
+            <span className="text-[10px] text-gray-500 mt-1 font-medium">{char.name}</span>
+          </div>
+          <div className="flex-1 bg-gray-50 rounded-2xl rounded-bl-none border border-gray-200 px-4 py-3 text-sm text-gray-700 leading-relaxed">
+            {char.reactions[charMood][Math.floor(Math.random() * char.reactions[charMood].length)]}
+          </div>
+        </div>
+      )}
 
       <div className="text-center mb-6">
         <div className="text-sm text-gray-400 mb-1">{jobRole} · 面接スコア</div>

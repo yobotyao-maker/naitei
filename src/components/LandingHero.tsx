@@ -35,6 +35,12 @@ export default function LandingHero() {
           面接を始める →
         </Link>
         <Link
+          href="/design"
+          className="border border-[#2D5BE3] hover:bg-blue-50 active:scale-95 text-[#2D5BE3] text-base font-medium px-8 py-4 rounded-2xl transition-all"
+        >
+          設計コース →
+        </Link>
+        <Link
           href="/auth"
           className="border border-gray-200 hover:bg-gray-50 active:scale-95 text-gray-600 text-base font-medium px-8 py-4 rounded-2xl transition-all"
         >
