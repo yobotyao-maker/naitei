@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react'
 
 type Row = {
-  id: string; user_id: string; job_role: string; score: number
+  id: string; user_id: string; eid: string | null; job_role: string; score: number
   level: string; feedback: string; lang: string | null
   technical_score: number | null; expression_score: number | null
   logic_score: number | null; japanese_score: number | null
@@ -20,6 +20,7 @@ const LEVEL_COLOR: Record<string, string> = {
 
 export default function InterviewSearch() {
   const [keyword, setKeyword] = useState('')
+  const [eid,     setEid]     = useState('')
   const [level,   setLevel]   = useState('')
   const [from,    setFrom]    = useState('')
   const [to,      setTo]      = useState('')
@@ -33,6 +34,7 @@ export default function InterviewSearch() {
     setLoading(true)
     const params = new URLSearchParams()
     if (keyword) params.set('keyword', keyword)
+    if (eid)     params.set('eid',     eid.trim())
     if (level)   params.set('level',   level)
     if (from)    params.set('from',    from)
     if (to)      params.set('to',      to)
@@ -44,7 +46,7 @@ export default function InterviewSearch() {
     setTotal(data.total ?? 0)
     setPage(p)
     setLoading(false)
-  }, [keyword, level, from, to])
+  }, [keyword, eid, level, from, to])
 
   const totalPages = total != null ? Math.ceil(total / 20) : 0
 
@@ -58,6 +60,13 @@ export default function InterviewSearch() {
             placeholder="岗位キーワード..."
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && search(0)}
+          />
+          <input
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+            placeholder="EID..."
+            value={eid}
+            onChange={e => setEid(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && search(0)}
           />
           <select
@@ -112,6 +121,9 @@ export default function InterviewSearch() {
           >
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2 flex-wrap">
+                {r.eid && (
+                  <span className="text-xs font-mono font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{r.eid}</span>
+                )}
                 <span className="text-sm font-medium text-gray-800">{r.job_role}</span>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${LEVEL_COLOR[r.level] ?? 'bg-gray-50 text-gray-500'}`}>
                   {r.level}
@@ -200,12 +212,16 @@ export default function InterviewSearch() {
               {/* 基本情報 */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-gray-500 block mb-1">ユーザーID</label>
-                  <p className="text-sm text-gray-900 font-mono">{selectedRow.user_id}</p>
+                  <label className="text-xs font-medium text-gray-500 block mb-1">EID</label>
+                  <p className="text-sm text-gray-900 font-mono">{selectedRow.eid || '—'}</p>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500 block mb-1">経験</label>
                   <p className="text-sm text-gray-900">{selectedRow.experience || '未指定'}</p>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-gray-500 block mb-1">ユーザーID</label>
+                  <p className="text-xs text-gray-400 font-mono">{selectedRow.user_id}</p>
                 </div>
               </div>
 
