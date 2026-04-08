@@ -50,7 +50,10 @@ export async function POST(req: NextRequest) {
   const { error } = await service
     .from('admins')
     .insert({ user_id: found.id, email: found.email })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (error.code === '23505') return NextResponse.json({ error: 'User is already an admin' }, { status: 409 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
   return NextResponse.json({ ok: true, user_id: found.id, email: found.email })
 }
 

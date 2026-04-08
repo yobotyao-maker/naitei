@@ -277,3 +277,6 @@ ALTER TABLE design_sessions
 
 ALTER TABLE design_sessions
   ADD COLUMN IF NOT EXISTS department TEXT;
+
+ALTER TABLE design_sessions
+  ADD COLUMN IF NOT EXISTS interview_date DATE;

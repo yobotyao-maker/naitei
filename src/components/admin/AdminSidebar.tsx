@@ -5,12 +5,13 @@ import LogoutButton from '@/components/LogoutButton'
 import Image from 'next/image'
 
 const NAV = [
-  { href: '/admin',            label: 'ダッシュボード' },
-  { href: '/admin/users',      label: 'ユーザー管理'   },
-  { href: '/admin/plans',      label: 'プラン管理'     },
-  { href: '/admin/interviews', label: '面接記録'       },
-  { href: '/admin/orders',     label: '注文明細'       },
-  { href: '/admin/admins',     label: '管理者設定'     },
+  { href: '/admin',                 label: 'ダッシュボード',  disabled: false },
+  { href: '/admin/users',           label: 'ユーザー管理',    disabled: false },
+  { href: '/admin/interviews',      label: '面接記録',        disabled: false },
+  { href: '/admin/design-sessions', label: '設計セッション',  disabled: false },
+  { href: '/admin/admins',          label: '管理者設定',      disabled: false },
+  { href: '/admin/plans',           label: 'プラン管理',      disabled: true  },
+  { href: '/admin/orders',          label: '注文明細',        disabled: true  },
 ]
 
 export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
@@ -25,6 +26,16 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV.map(n => {
+          if (n.disabled) {
+            return (
+              <span
+                key={n.href}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-300 cursor-not-allowed"
+              >
+                {n.label}
+              </span>
+            )
+          }
           const active = n.href === '/admin'
             ? pathname === '/admin'
             : pathname.startsWith(n.href)

@@ -10,7 +10,7 @@ import DesignQuestionCard from '@/components/design/DesignQuestionCard'
 import DesignAnswerInput from '@/components/design/DesignAnswerInput'
 import DesignResultCard from '@/components/design/DesignResultCard'
 import DesignSummary from '@/components/design/DesignSummary'
-import { selectQuestions, calcPLevel } from '@/lib/design-scoring'
+import { calcPLevel } from '@/lib/design-scoring'
 import type { QuestionRow } from '@/lib/design-scoring'
 
 type Step =
@@ -72,23 +72,25 @@ export default function DesignPage() {
         body: JSON.stringify({ ...backgroundData, selected_domains: domains }),
       })
       const session = await sessionRes.json()
-      if (!sessionRes.ok) throw new Error(session.error)
+      if (sessionRes.status === 401) {
+        window.location.href = '/auth'
+        return
+      }
+      if (!sessionRes.ok) throw new Error(session.error ?? 'セッション作成失敗')
       setSessionId(session.id)
       setBackgroundScore(session.background_score)
 
-      // 問題一覧取得
-      const qRes = await fetch('/api/design/questions')
-      const allQuestions: QuestionRow[] = await qRes.json()
-      if (!qRes.ok) throw new Error('Failed to fetch questions')
-
-      const selected = selectQuestions(allQuestions, domains)
+      const selected: QuestionRow[] = session.questions ?? []
+      if (selected.length === 0) {
+        throw new Error('問題が見つかりませんでした。設計領域を再選択してください。')
+      }
       setQuestions(selected)
       setCurrentIdx(0)
       setAnswers([])
       setStep('question')
     } catch (e) {
       console.error(e)
-      alert('セッションの作成に失敗しました。もう一度お試しください。')
+      alert(`セッションの作成に失敗しました: ${e instanceof Error ? e.message : '不明なエラー'}`)
       setStep('domain')
     }
   }

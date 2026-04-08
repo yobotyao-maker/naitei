@@ -5,12 +5,11 @@ import { buildDesignEvalPrompt, buildDesignOverallFeedbackPrompt } from '@/lib/d
 
 const client = new Anthropic()
 
-// POST /api/design/evaluate — 単一問題の AI 採点
+// POST /api/design/evaluate — 単一問題の AI 採点（ログイン不要）
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const {
       session_id,
@@ -47,22 +46,24 @@ export async function POST(req: NextRequest) {
       throw new Error('Claude returned invalid JSON')
     }
 
-    // design_answers テーブルに保存
-    const { error: ansErr } = await supabase.from('design_answers').insert({
-      session_id,
-      question_id,
-      question_number,
-      user_answer,
-      ai_score: result.score,
-      ai_feedback: result.feedback,
-      scoring_detail: {
-        accuracy: result.accuracy,
-        completeness: result.completeness,
-        clarity: result.clarity,
-        terminology: result.terminology,
-      },
-    })
-    if (ansErr) console.error('design_answers insert error:', ansErr)
+    // ログイン済み かつ ゲストセッションでない場合のみ DB に保存
+    if (user && session_id && !String(session_id).startsWith('guest-')) {
+      const { error: ansErr } = await supabase.from('design_answers').insert({
+        session_id,
+        question_id,
+        question_number,
+        user_answer,
+        ai_score: result.score,
+        ai_feedback: result.feedback,
+        scoring_detail: {
+          accuracy: result.accuracy,
+          completeness: result.completeness,
+          clarity: result.clarity,
+          terminology: result.terminology,
+        },
+      })
+      if (ansErr) console.error('design_answers insert error:', ansErr)
+    }
 
     return NextResponse.json(result)
   } catch (e) {
@@ -71,13 +72,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT /api/design/evaluate — 全問完了後の総合フィードバック生成
+// PUT /api/design/evaluate — 全問完了後の総合フィードバック生成（ログイン不要）
 export async function PUT(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { selected_domains, total_score, p_level, answers_with_scores } = await req.json()
 
     const prompt = buildDesignOverallFeedbackPrompt({

@@ -7,18 +7,26 @@ const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobRole, question, answer, lang } = await req.json()
+    const { jobRole, question, answer, lang, characterId } = await req.json()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 512,
-      messages: [{ role: 'user', content: buildEvalPrompt(jobRole, question, answer, lang) }]
+      messages: [{ role: 'user', content: buildEvalPrompt(jobRole, question, answer, lang, characterId) }]
     })
 
-    const raw = (message.content[0] as { type: string; text: string }).text
-    const result = JSON.parse(raw.replace(/```json|```/g, '').trim())
+    const block = message.content[0]
+    if (!block || block.type !== 'text') throw new Error('Unexpected Claude response format')
+    const raw = (block as { type: 'text'; text: string }).text
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: Record<string, any>
+    try {
+      result = JSON.parse(raw.replace(/```json|```/g, '').trim())
+    } catch {
+      throw new Error('Claude returned invalid JSON')
+    }
 
     // 换算为10分制
     if (lang === 'ja') {
@@ -41,7 +49,12 @@ export async function POST(req: NextRequest) {
         answer,
         score: result.score,
         level: result.level,
-        feedback: result.feedback
+        feedback: result.feedback,
+        lang: lang ?? 'zh',
+        technical_score: result.technical ?? null,
+        expression_score: result.expression ?? null,
+        logic_score: result.logic ?? null,
+        japanese_score: lang === 'ja' ? (result.japanese ?? null) : null,
       })
 
       // 附带剩余回数，供前端显示提示

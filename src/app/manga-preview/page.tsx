@@ -76,6 +76,7 @@ export default function MangaPreviewPage() {
       {stage === 'question' && (
         <div style={{ border: '1px solid #ddd', borderRadius: 16, overflow: 'hidden' }}>
           <MangaQuestion
+            key={qIndex}
             category={currentQ.category}
             question={currentQ.text}
             questionTag={currentQ.category}

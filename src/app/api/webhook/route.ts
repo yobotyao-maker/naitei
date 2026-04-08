@@ -70,9 +70,12 @@ export async function POST(req: NextRequest) {
 
       if (!userId || plan !== 'pack') return NextResponse.json({ received: true })
 
-      await db.rpc('refund_pack_quota', { p_user_id: userId })
+      const { error } = await db.rpc('refund_pack_quota', { p_user_id: userId })
+      if (error) throw error
     } catch (e) {
       console.error('refund handling error:', e)
+      // Return 500 so Stripe retries the webhook
+      return NextResponse.json({ error: 'Refund processing failed' }, { status: 500 })
     }
   }
 

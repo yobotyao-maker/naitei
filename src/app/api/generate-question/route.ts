@@ -8,7 +8,7 @@ const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobRole, experience, lang, isFirst } = await req.json()
+    const { jobRole, experience, lang, isFirst, characterId } = await req.json()
     if (!jobRole) return NextResponse.json({ error: 'jobRole is required' }, { status: 400 })
 
     // 仅在 session 第一题时检查并扣减额度
@@ -27,10 +27,12 @@ export async function POST(req: NextRequest) {
     const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 256,
-      messages: [{ role: 'user', content: buildQuestionPrompt(jobRole, experience, lang) }]
+      messages: [{ role: 'user', content: buildQuestionPrompt(jobRole, experience, lang, characterId) }]
     })
 
-    const question = (message.content[0] as { type: string; text: string }).text
+    const block = message.content[0]
+    if (!block || block.type !== 'text') throw new Error('Unexpected Claude response format')
+    const question = (block as { type: 'text'; text: string }).text
     return NextResponse.json({ question })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to generate question' }, { status: 500 })

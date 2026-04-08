@@ -1,8 +1,10 @@
 'use client'
 
 export type BackgroundData = {
+  interview_date: string
   interviewer_eid: string
-  department: string
+  interviewee_eid: string
+  department: string | null
   japanese_level: string
   soft_skill_level: string
   basic_design_years: string
@@ -41,8 +43,10 @@ export default function BackgroundForm({ onSubmit }: Props) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     onSubmit({
+      interview_date: fd.get('interview_date') as string,
       interviewer_eid: fd.get('interviewer_eid') as string,
-      department: fd.get('department') as string,
+      interviewee_eid: fd.get('interviewee_eid') as string,
+      department: (fd.get('department') as string) || null,
       japanese_level: fd.get('japanese_level') as string,
       soft_skill_level: fd.get('soft_skill_level') as string,
       basic_design_years: fd.get('basic_design_years') as string,
@@ -60,7 +64,20 @@ export default function BackgroundForm({ onSubmit }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          面接官EID <span className="text-red-400">*</span>
+          Interview Date <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="date"
+          name="interview_date"
+          required
+          defaultValue={new Date().toISOString().slice(0, 10)}
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          EID <span className="text-red-400">*</span>
         </label>
         <input
           type="text"
@@ -73,12 +90,24 @@ export default function BackgroundForm({ onSubmit }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          部署 <span className="text-red-400">*</span>
+          Interviewee EID <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="text"
+          name="interviewee_eid"
+          required
+          placeholder="例: EID67890"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          部署 <span className="text-gray-400 text-xs font-normal">（任意）</span>
         </label>
         <input
           type="text"
           name="department"
-          required
           placeholder="例: システム開発部"
           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />

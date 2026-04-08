@@ -11,7 +11,14 @@
       "Bash(vercel:*)",
       "Bash(npx vercel:*)",
       "Bash(python3 -m json.tool)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''name''''\\)\\); [print\\(t\\) for t in d.get\\(''''targets'''',{}\\).keys\\(\\)]\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\(''''name''''\\)\\); [print\\(t\\) for t in d.get\\(''''targets'''',{}\\).keys\\(\\)]\")",
+      "Bash(npx next:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(git -C /c/Users/wenxiong.yao/Naitei remote -v)",
+      "Bash(git -C /c/Users/wenxiong.yao/Naitei status --short)",
+      "Bash(git -C /c/Users/wenxiong.yao/Naitei add src/app/api/design/ src/app/design/ src/components/design/ src/lib/design-prompts.ts src/lib/design-scoring.ts supabase/design_migration.sql src/app/admin/page.tsx src/app/history/page.tsx src/components/AdminDashboard.tsx src/components/LandingHero.tsx)",
+      "Bash(git:*)",
+      "Skill(update-config)"
     ]
   }
 }

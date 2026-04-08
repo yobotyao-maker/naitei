@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { calcBackgroundScore, calcPLevel } from '@/lib/design-scoring'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { calcBackgroundScore, calcPLevel, selectQuestions } from '@/lib/design-scoring'
 
-// POST /api/design/sessions — セッション作成
+function getServiceClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
+
+// POST /api/design/sessions — セッション作成 + 問題リスト返却
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await req.json()
     const {
+      interview_date,
       interviewer_eid,
+      interviewee_eid,
       department,
       japanese_level,
       soft_skill_level,
@@ -29,29 +38,56 @@ export async function POST(req: NextRequest) {
       reviewer_years,
     })
 
-    const { data, error } = await supabase
-      .from('design_sessions')
-      .insert({
-        user_id: user.id,
-        interviewer_eid,
-        department,
-        japanese_level,
-        soft_skill_level,
-        basic_design_years,
-        requirement_years,
-        reviewer_years,
-        selected_domains,
+    // 問題一覧取得（service role で RLS バイパス）
+    const serviceClient = getServiceClient()
+    const { data: allQuestions, error: qErr } = await serviceClient
+      .from('design_questions')
+      .select('*')
+      .order('number')
+
+    if (qErr) throw qErr
+
+    const questions = selectQuestions(allQuestions ?? [], selected_domains ?? [])
+
+    // 未ログイン → ゲストモード（DBに保存しない）
+    if (!user) {
+      return NextResponse.json({
+        id: `guest-${Date.now()}`,
         background_score,
         status: 'in_progress',
+        questions,
       })
+    }
+
+    // ログイン済み → DBに保存
+    const insertData: Record<string, unknown> = {
+      user_id: user.id,
+      japanese_level,
+      soft_skill_level,
+      basic_design_years,
+      requirement_years,
+      reviewer_years,
+      selected_domains,
+      background_score,
+      status: 'in_progress',
+    }
+    if (interview_date)    insertData.interview_date    = interview_date
+    if (interviewer_eid)   insertData.interviewer_eid   = interviewer_eid
+    if (interviewee_eid)   insertData.interviewee_eid   = interviewee_eid
+    if (department)        insertData.department        = department
+
+    const { data: session, error } = await supabase
+      .from('design_sessions')
+      .insert(insertData)
       .select()
       .single()
 
     if (error) throw error
-    return NextResponse.json(data)
-  } catch (e) {
-    console.error(e)
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+
+    return NextResponse.json({ ...session, questions })
+  } catch (e: any) {
+    console.error('[design/sessions POST]', e)
+    return NextResponse.json({ error: e?.message ?? 'Failed to create session' }, { status: 500 })
   }
 }
 
@@ -64,7 +100,6 @@ export async function PATCH(req: NextRequest) {
 
     const { session_id, question_scores, overall_feedback } = await req.json()
 
-    // セッション取得
     const { data: session, error: sErr } = await supabase
       .from('design_sessions')
       .select('background_score')
