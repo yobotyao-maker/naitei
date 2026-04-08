@@ -30,7 +30,7 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
             return (
               <span
                 key={n.href}
-                className="block px-3 py-2 rounded-xl text-sm text-gray-300 cursor-not-allowed"
+                className="block px-3 py-2 rounded-xl text-sm text-gray-400 cursor-not-allowed opacity-50"
               >
                 {n.label}
               </span>
