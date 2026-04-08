@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
   const sp      = req.nextUrl.searchParams
   const keyword = sp.get('keyword') || null
+  const eid     = sp.get('eid')     || null
   const level   = sp.get('level')   || null
   const from    = sp.get('from')    || null
   const to      = sp.get('to')      || null
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase.rpc('search_interviews', {
     p_keyword: keyword,
+    p_eid:     eid,
     p_level:   level,
     p_from:    from,
     p_to:      to,

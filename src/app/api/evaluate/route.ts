@@ -7,7 +7,7 @@ const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobRole, question, answer, lang, characterId } = await req.json()
+    const { jobRole, question, answer, lang, characterId, eid } = await req.json()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         expression_score: result.expression ?? null,
         logic_score: result.logic ?? null,
         japanese_score: lang === 'ja' ? (result.japanese ?? null) : null,
+        eid: eid || null,
       })
 
       // 附带剩余回数，供前端显示提示

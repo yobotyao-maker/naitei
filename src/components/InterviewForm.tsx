@@ -5,10 +5,11 @@ import type { Lang } from '@/lib/prompts'
 const PRESET_ROLES = ['Javaエンジニア', 'フロントエンド', 'インフラ', 'PM', 'データエンジニア']
 const PRESET_EXPS = ['1年未満', '1〜3年', '3〜5年', '5年以上']
 
-export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, exp: string, lang: Lang) => void }) {
+export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, exp: string, lang: Lang, eid: string) => void }) {
   const [role, setRole] = useState('')
   const [exp, setExp] = useState('')
   const [lang, setLang] = useState<Lang>('zh')
+  const [eid, setEid] = useState('')
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
@@ -67,6 +68,17 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
           />
         </div>
 
+        {/* EID */}
+        <div>
+          <label className="block text-sm text-gray-600 mb-2">社員番号 EID（任意）</label>
+          <input
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition"
+            placeholder="例: EMP001234"
+            value={eid}
+            onChange={e => setEid(e.target.value)}
+          />
+        </div>
+
         {/* 经验年数 */}
         <div>
           <label className="block text-sm text-gray-600 mb-2">経験年数（任意）</label>
@@ -88,7 +100,7 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
         </div>
 
         <button
-          onClick={() => role && onSubmit(role, exp, lang)}
+          onClick={() => role && onSubmit(role, exp, lang, eid.trim())}
           disabled={!role}
           className="w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
         >

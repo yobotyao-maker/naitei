@@ -141,10 +141,21 @@ GRANT  EXECUTE ON FUNCTION get_admin_user_detail TO authenticated;
 
 
 -- ────────────────────────────────────────────────────────────
--- 6. search_interviews() を更新して user_id も返す
+-- 6. interviews に eid カラム追加
 -- ────────────────────────────────────────────────────────────
+ALTER TABLE interviews
+  ADD COLUMN IF NOT EXISTS eid TEXT;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 7. search_interviews() を更新して eid フィルタ・カラムを追加
+--    旧シグネチャを先に DROP してオーバーロード衝突を解消
+-- ────────────────────────────────────────────────────────────
+DROP FUNCTION IF EXISTS search_interviews(text, text, date, date, int, int);
+
 CREATE OR REPLACE FUNCTION search_interviews(
   p_keyword text  default null,
+  p_eid     text  default null,
   p_level   text  default null,
   p_from    date  default null,
   p_to      date  default null,
@@ -159,17 +170,19 @@ AS $$
     'total', (
       SELECT count(*) FROM interviews
       WHERE (p_keyword IS NULL OR job_role ILIKE '%' || p_keyword || '%')
+        AND (p_eid     IS NULL OR eid = p_eid)
         AND (p_level   IS NULL OR level = p_level)
         AND (p_from    IS NULL OR created_at::date >= p_from)
         AND (p_to      IS NULL OR created_at::date <= p_to)
     ),
     'rows', (
       SELECT json_agg(r) FROM (
-        SELECT id, user_id, job_role, experience, score, level, feedback,
+        SELECT id, user_id, eid, job_role, experience, score, level, feedback,
                lang, technical_score, expression_score, logic_score, japanese_score,
                question, answer, created_at
         FROM interviews
         WHERE (p_keyword IS NULL OR job_role ILIKE '%' || p_keyword || '%')
+          AND (p_eid     IS NULL OR eid = p_eid)
           AND (p_level   IS NULL OR level = p_level)
           AND (p_from    IS NULL OR created_at::date >= p_from)
           AND (p_to      IS NULL OR created_at::date <= p_to)
