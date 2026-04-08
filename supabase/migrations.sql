@@ -129,7 +129,8 @@ as $$
     ),
     'rows', (
       select json_agg(r) from (
-        select id, job_role, score, level, feedback, created_at
+        select id, user_id, job_role, experience, question, answer, score, level, feedback,
+               lang, technical_score, expression_score, logic_score, japanese_score, created_at
         from interviews
         where (p_keyword is null or job_role ilike '%' || p_keyword || '%')
           and (p_level   is null or level = p_level)
@@ -237,3 +238,14 @@ create policy "Admins readable by authenticated"
 -- insert into admins (user_id, email)
 -- values ('YOUR_ADMIN_USER_ID', 'admin@example.com')
 -- on conflict (user_id) do nothing;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 9. interviews テーブルに言語・スコア分析カラム追加
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE interviews
+  ADD COLUMN IF NOT EXISTS lang TEXT,                    -- 'ja' | 'zh' | その他
+  ADD COLUMN IF NOT EXISTS technical_score INTEGER,      -- 技術力スコア
+  ADD COLUMN IF NOT EXISTS expression_score INTEGER,     -- 表現力スコア
+  ADD COLUMN IF NOT EXISTS logic_score INTEGER,          -- 論理力スコア
+  ADD COLUMN IF NOT EXISTS japanese_score INTEGER;       -- 日本語スコア
