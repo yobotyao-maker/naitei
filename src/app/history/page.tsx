@@ -178,7 +178,7 @@ export default async function HistoryPage({
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
                   <div className="text-2xl font-medium text-[#2D5BE3]">{designAvg}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">平均スコア/80</div>
+                  <div className="text-xs text-gray-400 mt-0.5">平均スコア/100</div>
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
                   <div className={`text-2xl font-medium ${P_LEVEL_LABELS[designSessions[0]?.p_level ?? 'P1']?.color ?? 'text-gray-500'}`}>
@@ -223,11 +223,11 @@ export default async function HistoryPage({
                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pLevelColor[session.p_level] ?? 'text-gray-500 bg-gray-50'}`}>
                           {session.p_level}
                         </span>
-                        <span className="text-lg font-medium text-gray-900">{session.total_score}<span className="text-xs text-gray-400">/80</span></span>
+                        <span className="text-lg font-medium text-gray-900">{session.total_score}<span className="text-xs text-gray-400">/100</span></span>
                       </div>
                     </div>
                     <div className="flex gap-4 text-xs text-gray-400">
-                      <span>背景: {session.background_score}/30</span>
+                      <span>背景: {session.background_score}/50</span>
                       <span>技術: {session.technical_score}/50</span>
                     </div>
                   </div>

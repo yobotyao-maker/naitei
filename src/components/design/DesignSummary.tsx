@@ -58,9 +58,9 @@ export default function DesignSummary({
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-5">スコア内訳</h3>
         <div className="grid grid-cols-3 gap-6">
-          <ScoreGauge value={backgroundScore} max={30} label="背景評価" />
+          <ScoreGauge value={backgroundScore} max={50} label="背景評価" />
           <ScoreGauge value={technicalScore} max={50} label="技術問題" />
-          <ScoreGauge value={totalScore} max={80} label="合計" />
+          <ScoreGauge value={totalScore} max={100} label="合計" />
         </div>
       </div>
 

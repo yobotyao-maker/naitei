@@ -10,8 +10,8 @@ const NAV = [
   { href: '/admin/interviews',      label: '面接記録',        disabled: false },
   { href: '/admin/design-sessions', label: '設計セッション',  disabled: false },
   { href: '/admin/admins',          label: '管理者設定',      disabled: false },
-  { href: '/admin/plans',           label: 'プラン管理',      disabled: true  },
-  { href: '/admin/orders',          label: '注文明細',        disabled: true  },
+  { href: '/admin/plans',           label: 'プラン管理',      disabled: false },
+  { href: '/admin/orders',          label: '注文明細',        disabled: false },
 ]
 
 export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
