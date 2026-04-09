@@ -68,9 +68,9 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
           />
         </div>
 
-        {/* EID */}
+        {/* Interviewer EID */}
         <div>
-          <label className="block text-sm text-gray-600 mb-2">社員番号 EID（任意）</label>
+          <label className="block text-sm text-gray-600 mb-2">Interviewer EID（任意）</label>
           <input
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition"
             placeholder="例: EMP001234"
