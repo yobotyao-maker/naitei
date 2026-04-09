@@ -24,18 +24,30 @@ export default async function HistoryPage({
   const activeTab = tab === 'design' ? 'design' : 'interview'
 
   // ── 面接履歴 ────────────────────────────────────────────────
-  // RLS 会自动过滤用户数据
   const { data: interviews } = await supabase
-    .from('design_answers')
+    .from('design_sessions')
     .select(`
       id,
-      question_number,
-      user_answer,
-      ai_score,
-      ai_feedback,
-      scoring_detail,
-      created_at
+      interview_date,
+      interviewer_eid,
+      interviewee_eid,
+      department,
+      background_score,
+      technical_score,
+      total_score,
+      p_level,
+      created_at,
+      design_answers (
+        id,
+        question_number,
+        user_answer,
+        ai_score,
+        ai_feedback,
+        scoring_detail,
+        created_at
+      )
     `)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -66,9 +78,14 @@ export default async function HistoryPage({
     .order('created_at', { ascending: false })
     .limit(20)
 
-  const interviewAvg = interviews?.length
-    ? (interviews.reduce((s, i) => s + (i.ai_score ?? 0), 0) / interviews.length).toFixed(1)
+  // 计算所有答题的平均分
+  const allAnswers = interviews?.flatMap(s => s.design_answers ?? []) ?? []
+  const interviewAvg = allAnswers.length
+    ? (allAnswers.reduce((s, a) => s + (a.ai_score ?? 0), 0) / allAnswers.length).toFixed(1)
     : null
+
+  // 总答题数
+  const totalAnswers = allAnswers.length
 
   const designAvg = designSessions?.length
     ? Math.round(designSessions.reduce((s, d) => s + (d.total_score ?? 0), 0) / designSessions.length)
@@ -126,10 +143,10 @@ export default async function HistoryPage({
         {/* ── 面接練習タブ ── */}
         {activeTab === 'interview' && (
           <>
-            {interviews && interviews.length > 0 && (
+            {allAnswers.length > 0 && (
               <div className="grid grid-cols-3 gap-3 mb-6">
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
-                  <div className="text-2xl font-medium text-gray-900">{interviews.length}</div>
+                  <div className="text-2xl font-medium text-gray-900">{totalAnswers}</div>
                   <div className="text-xs text-gray-400 mt-0.5">総練習回数</div>
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
@@ -137,13 +154,13 @@ export default async function HistoryPage({
                   <div className="text-xs text-gray-400 mt-0.5">平均スコア</div>
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
-                  <div className="text-2xl font-medium text-gray-900">{interviews[0]?.ai_score ?? '-'}/5</div>
+                  <div className="text-2xl font-medium text-gray-900">{allAnswers[0]?.ai_score ?? '-'}/5</div>
                   <div className="text-xs text-gray-400 mt-0.5">最新スコア</div>
                 </div>
               </div>
             )}
 
-            {!interviews || interviews.length === 0 ? (
+            {allAnswers.length === 0 ? (
               <div className="bg-white rounded-3xl p-12 border border-gray-100 text-center">
                 <div className="text-4xl mb-3">📝</div>
                 <p className="text-gray-500 font-medium mb-1">まだ練習記録がありません</p>
@@ -153,36 +170,48 @@ export default async function HistoryPage({
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                {interviews.map((item) => (
-                  <div key={item.id} className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-900">問 {item.question_number}</span>
-                        <div className="text-xs text-gray-400 mt-0.5">
-                          {new Date(item.created_at).toLocaleDateString('ja-JP', {
+              <div className="space-y-4">
+                {interviews?.map((session) => (
+                  <div key={session.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    {/* セッションヘッダー */}
+                    <div className="p-5 border-b border-gray-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="text-xs text-gray-500">
+                          <span className="font-medium">面接官: {session.interviewer_eid}</span>
+                          {session.interviewee_eid && <span className="ml-3">被面接: {session.interviewee_eid}</span>}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(session.interview_date || session.created_at).toLocaleDateString('ja-JP', {
                             year: 'numeric', month: 'short', day: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
                           })}
                         </div>
                       </div>
-                      <span className={`text-lg font-bold ${['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600'][item.ai_score] || 'text-gray-500'}`}>
-                        {item.ai_score}/5
-                      </span>
                     </div>
-                    {item.user_answer && (
-                      <details className="text-xs text-gray-500 mb-2">
-                        <summary className="cursor-pointer hover:text-gray-700 font-medium">回答を表示</summary>
-                        <p className="mt-1 pl-2 py-1 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap text-gray-600 text-xs">
-                          {item.user_answer}
-                        </p>
-                      </details>
-                    )}
-                    {item.ai_feedback && (
-                      <div className="bg-blue-50 rounded-xl px-3 py-2">
-                        <p className="text-xs text-blue-700 leading-relaxed">{item.ai_feedback}</p>
-                      </div>
-                    )}
+
+                    {/* 答題記録 */}
+                    <div className="space-y-0">
+                      {session.design_answers?.map((answer: any, idx: number) => (
+                        <div key={answer.id} className={`p-4 ${idx !== (session.design_answers?.length ?? 0) - 1 ? 'border-b border-gray-50' : ''}`}>
+                          <div className="flex items-start justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-900">問 {answer.question_number}</span>
+                            <span className={`text-lg font-bold ${['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600'][answer.ai_score] || 'text-gray-500'}`}>
+                              {answer.ai_score}/5
+                            </span>
+                          </div>
+                          {answer.user_answer && (
+                            <details className="text-xs text-gray-500 mb-2">
+                              <summary className="cursor-pointer hover:text-gray-700 font-medium">回答を表示</summary>
+                              <p className="mt-1 pl-2 py-1 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap text-gray-600 text-xs">
+                                {answer.user_answer}
+                              </p>
+                            </details>
+                          )}
+                          {answer.ai_feedback && (
+                            <p className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">{answer.ai_feedback}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
