@@ -69,27 +69,27 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
           />
         </div>
 
-        {/* Interviewer EID */}
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Interviewer EID <span className="text-red-400">*</span>
-          </label>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition"
-            placeholder="例: EMP001234"
-            value={interviewerEid}
-            onChange={e => setInterviewerEid(e.target.value)}
-          />
-        </div>
-
         {/* Interviewee EID */}
         <div>
-          <label className="block text-sm text-gray-600 mb-2">Interviewee EID（任意）</label>
+          <label className="block text-sm text-gray-600 mb-2">
+            Interviewee EID <span className="text-red-400">*</span>
+          </label>
           <input
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition"
             placeholder="例: EMP005678"
             value={intervieweeEid}
             onChange={e => setIntervieweeEid(e.target.value)}
+          />
+        </div>
+
+        {/* Interviewer EID */}
+        <div>
+          <label className="block text-sm text-gray-600 mb-2">Interviewer EID（任意）</label>
+          <input
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-blue-400 transition"
+            placeholder="例: EMP001234"
+            value={interviewerEid}
+            onChange={e => setInterviewerEid(e.target.value)}
           />
         </div>
 
@@ -114,8 +114,8 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
         </div>
 
         <button
-          onClick={() => role && interviewerEid.trim() && onSubmit(role, exp, lang, interviewerEid.trim(), intervieweeEid.trim())}
-          disabled={!role || !interviewerEid.trim()}
+          onClick={() => role && intervieweeEid.trim() && onSubmit(role, exp, lang, interviewerEid.trim(), intervieweeEid.trim())}
+          disabled={!role || !intervieweeEid.trim()}
           className="w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
         >
           質問を生成する →
