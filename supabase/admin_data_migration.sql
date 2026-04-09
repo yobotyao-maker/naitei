@@ -151,8 +151,10 @@ ALTER TABLE interviews
 -- ────────────────────────────────────────────────────────────
 -- 7. search_interviews() を更新して eid フィルタ・カラムを追加
 --    旧シグネチャを先に DROP してオーバーロード衝突を解消
+--    p_eid は interviewee_eid / interviewer_eid 両方を OR 検索
 -- ────────────────────────────────────────────────────────────
 DROP FUNCTION IF EXISTS search_interviews(text, text, date, date, int, int);
+DROP FUNCTION IF EXISTS search_interviews(text, text, text, date, date, int, int);
 
 CREATE OR REPLACE FUNCTION search_interviews(
   p_keyword text  default null,
@@ -171,7 +173,7 @@ AS $$
     'total', (
       SELECT count(*) FROM interviews
       WHERE (p_keyword IS NULL OR job_role ILIKE '%' || p_keyword || '%')
-        AND (p_eid     IS NULL OR eid = p_eid)
+        AND (p_eid     IS NULL OR eid = p_eid OR interviewer_eid = p_eid)
         AND (p_level   IS NULL OR level = p_level)
         AND (p_from    IS NULL OR created_at::date >= p_from)
         AND (p_to      IS NULL OR created_at::date <= p_to)
@@ -183,7 +185,7 @@ AS $$
                question, answer, created_at
         FROM interviews
         WHERE (p_keyword IS NULL OR job_role ILIKE '%' || p_keyword || '%')
-          AND (p_eid     IS NULL OR eid = p_eid)
+          AND (p_eid     IS NULL OR eid = p_eid OR interviewer_eid = p_eid)
           AND (p_level   IS NULL OR level = p_level)
           AND (p_from    IS NULL OR created_at::date >= p_from)
           AND (p_to      IS NULL OR created_at::date <= p_to)
@@ -196,3 +198,11 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION search_interviews FROM anon;
 GRANT  EXECUTE ON FUNCTION search_interviews TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 8. design_answers に eid カラム追加（セッション EID を回答単位で保持）
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE design_answers
+  ADD COLUMN IF NOT EXISTS interviewee_eid TEXT,
+  ADD COLUMN IF NOT EXISTS interviewer_eid TEXT;

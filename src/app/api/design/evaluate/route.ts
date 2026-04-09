@@ -48,6 +48,14 @@ export async function POST(req: NextRequest) {
 
     // ログイン済み かつ ゲストセッションでない場合のみ DB に保存
     if (user && session_id && !String(session_id).startsWith('guest-')) {
+      // セッションから EID を取得して回答行に付与
+      const { data: sessionData } = await supabase
+        .from('design_sessions')
+        .select('interviewee_eid, interviewer_eid')
+        .eq('id', session_id)
+        .eq('user_id', user.id)
+        .single()
+
       const { error: ansErr } = await supabase.from('design_answers').insert({
         session_id,
         question_id,
@@ -61,6 +69,8 @@ export async function POST(req: NextRequest) {
           clarity: result.clarity,
           terminology: result.terminology,
         },
+        interviewee_eid: sessionData?.interviewee_eid ?? null,
+        interviewer_eid: sessionData?.interviewer_eid ?? null,
       })
       if (ansErr) console.error('design_answers insert error:', ansErr)
     }
