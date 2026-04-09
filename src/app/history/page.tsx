@@ -4,13 +4,6 @@ import Logo from '@/components/Logo'
 import { redirect } from 'next/navigation'
 import { P_LEVEL_LABELS } from '@/lib/design-scoring'
 
-const levelColor: Record<string, string> = {
-  P1: 'text-red-500 bg-red-50',
-  P2: 'text-orange-400 bg-orange-50',
-  P3: 'text-blue-500 bg-blue-50',
-  P4: 'text-green-500 bg-green-50',
-}
-
 const pLevelColor: Record<string, string> = {
   P1: 'text-gray-500 bg-gray-50',
   P2: 'text-blue-500 bg-blue-50',
@@ -32,9 +25,20 @@ export default async function HistoryPage({
 
   // ── 面接履歴 ────────────────────────────────────────────────
   const { data: interviews } = await supabase
-    .from('interviews')
-    .select('*')
-    .eq('user_id', user.id)
+    .from('design_answers')
+    .select(`
+      id,
+      question_number,
+      user_answer,
+      ai_score,
+      ai_feedback,
+      scoring_detail,
+      created_at,
+      design_sessions (
+        user_id
+      )
+    `)
+    .eq('design_sessions.user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -66,7 +70,7 @@ export default async function HistoryPage({
     .limit(20)
 
   const interviewAvg = interviews?.length
-    ? (interviews.reduce((s, i) => s + (i.score ?? 0), 0) / interviews.length).toFixed(1)
+    ? (interviews.reduce((s, i) => s + (i.ai_score ?? 0), 0) / interviews.length).toFixed(1)
     : null
 
   const designAvg = designSessions?.length
@@ -136,8 +140,8 @@ export default async function HistoryPage({
                   <div className="text-xs text-gray-400 mt-0.5">平均スコア</div>
                 </div>
                 <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
-                  <div className="text-2xl font-medium text-gray-900">{interviews[0]?.level ?? '-'}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">最新レベル</div>
+                  <div className="text-2xl font-medium text-gray-900">{interviews[0]?.ai_score ?? '-'}/5</div>
+                  <div className="text-xs text-gray-400 mt-0.5">最新スコア</div>
                 </div>
               </div>
             )}
@@ -157,7 +161,7 @@ export default async function HistoryPage({
                   <div key={item.id} className="bg-white rounded-2xl p-5 border border-gray-100">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <span className="text-sm font-medium text-gray-900">{item.job_role}</span>
+                        <span className="text-sm font-medium text-gray-900">問 {item.question_number}</span>
                         <div className="text-xs text-gray-400 mt-0.5">
                           {new Date(item.created_at).toLocaleDateString('ja-JP', {
                             year: 'numeric', month: 'short', day: 'numeric',
@@ -165,17 +169,21 @@ export default async function HistoryPage({
                           })}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${levelColor[item.level] ?? 'text-gray-500 bg-gray-50'}`}>
-                          {item.level}
-                        </span>
-                        <span className="text-lg font-medium text-gray-900">{item.score?.toFixed(1)}</span>
-                      </div>
+                      <span className={`text-lg font-bold ${['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600'][item.ai_score] || 'text-gray-500'}`}>
+                        {item.ai_score}/5
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2">{item.question}</p>
-                    {item.feedback && (
+                    {item.user_answer && (
+                      <details className="text-xs text-gray-500 mb-2">
+                        <summary className="cursor-pointer hover:text-gray-700 font-medium">回答を表示</summary>
+                        <p className="mt-1 pl-2 py-1 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap text-gray-600 text-xs">
+                          {item.user_answer}
+                        </p>
+                      </details>
+                    )}
+                    {item.ai_feedback && (
                       <div className="bg-blue-50 rounded-xl px-3 py-2">
-                        <p className="text-xs text-blue-700 leading-relaxed">{item.feedback}</p>
+                        <p className="text-xs text-blue-700 leading-relaxed">{item.ai_feedback}</p>
                       </div>
                     )}
                   </div>
