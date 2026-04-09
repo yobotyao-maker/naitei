@@ -104,7 +104,7 @@ export default function InterviewSearch() {
         <p className="text-xs text-gray-300 text-center py-10">条件に一致する記録がありません</p>
       )}
       {rows.length === 0 && total == null && (
-        <p className="text-xs text-gray-300 text-center py-10">EID を入力して検索してください</p>
+        <p className="text-xs text-gray-300 text-center py-10">EID を入力するか、空欄のまま検索で全件表示</p>
       )}
 
       <div className="divide-y divide-gray-50">
@@ -112,11 +112,12 @@ export default function InterviewSearch() {
           <div
             key={r.id}
             onClick={() => setSelectedRow(r)}
-            className="px-5 py-3.5 cursor-pointer hover:bg-blue-50 transition-colors"
+            className="px-5 py-4 cursor-pointer hover:bg-blue-50 transition-colors"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
+                {/* ヘッダー行 */}
+                <div className="flex items-center gap-2 flex-wrap mb-2">
                   {r.eid ? (
                     <span className="text-xs font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded" title="Interviewee EID">{r.eid}</span>
                   ) : (
@@ -133,11 +134,24 @@ export default function InterviewSearch() {
                     <span className="text-xs text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">日本語</span>
                   )}
                 </div>
-                {r.feedback && (
+                {/* 質問プレビュー */}
+                {r.question && (
+                  <p className="text-xs text-gray-700 mb-1 line-clamp-2">
+                    <span className="font-medium text-gray-500">Q: </span>{r.question}
+                  </p>
+                )}
+                {/* 回答プレビュー */}
+                {r.answer && (
+                  <p className="text-xs text-gray-400 line-clamp-2">
+                    <span className="font-medium">A: </span>{r.answer}
+                  </p>
+                )}
+                {/* フィードバック（質問・回答がない場合のみ） */}
+                {!r.question && r.feedback && (
                   <p className="text-xs text-gray-400 truncate max-w-md">{r.feedback}</p>
                 )}
               </div>
-              <div className="shrink-0 ml-4 text-right">
+              <div className="shrink-0 text-right">
                 <div className="text-base font-semibold text-gray-900">{r.score?.toFixed(1)}</div>
                 <div className="text-xs text-gray-400">
                   {new Date(r.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
