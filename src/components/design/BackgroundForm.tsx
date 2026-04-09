@@ -77,19 +77,6 @@ export default function BackgroundForm({ onSubmit }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          EID <span className="text-red-400">*</span>
-        </label>
-        <input
-          type="text"
-          name="interviewer_eid"
-          required
-          placeholder="例: EID12345"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
           Interviewee EID <span className="text-red-400">*</span>
         </label>
         <input
@@ -97,6 +84,18 @@ export default function BackgroundForm({ onSubmit }: Props) {
           name="interviewee_eid"
           required
           placeholder="例: EID67890"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Interviewer EID <span className="text-gray-400 text-xs font-normal">（任意）</span>
+        </label>
+        <input
+          type="text"
+          name="interviewer_eid"
+          placeholder="例: EID12345"
           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
       </div>
