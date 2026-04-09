@@ -5,7 +5,7 @@ import { P_LEVEL_LABELS } from '@/lib/design-scoring'
 type AnswerItem = {
   question: { number: number; category: string; content: string }
   answer: string
-  result: { score: number; feedback: string }
+  result: { score: number; accuracy: number; completeness: number; clarity: number; terminology: number; feedback: string }
 }
 
 type Props = {
@@ -89,7 +89,7 @@ export default function DesignSummary({
         <div className="text-sm font-semibold text-gray-700">問題別結果</div>
         {answers.map((item, i) => (
           <div key={i} className="border-t border-gray-50 pt-4 first:border-0 first:pt-0">
-            <div className="flex items-start justify-between gap-3 mb-1">
+            <div className="flex items-start justify-between gap-3 mb-3">
               <span className="text-xs text-gray-500 flex-1 leading-relaxed">{item.question.content.slice(0, 60)}…</span>
               <span className={`text-sm font-bold flex-shrink-0 ${
                 item.result.score >= 4 ? 'text-green-600' :
@@ -99,7 +99,26 @@ export default function DesignSummary({
                 {item.result.score}/5
               </span>
             </div>
-            <p className="text-xs text-gray-400 leading-relaxed">{item.result.feedback}</p>
+            {/* スコア詳細 */}
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <div className="text-center text-xs">
+                <div className="text-gray-700 font-semibold">{item.result.accuracy}</div>
+                <div className="text-gray-400 text-xs">正確性</div>
+              </div>
+              <div className="text-center text-xs">
+                <div className="text-gray-700 font-semibold">{item.result.completeness}</div>
+                <div className="text-gray-400 text-xs">網羅性</div>
+              </div>
+              <div className="text-center text-xs">
+                <div className="text-gray-700 font-semibold">{item.result.clarity}</div>
+                <div className="text-gray-400 text-xs">明瞭性</div>
+              </div>
+              <div className="text-center text-xs">
+                <div className="text-gray-700 font-semibold">{item.result.terminology}</div>
+                <div className="text-gray-400 text-xs">専門用語</div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 leading-relaxed">{item.result.feedback}</p>
           </div>
         ))}
       </div>

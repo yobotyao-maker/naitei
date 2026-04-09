@@ -23,7 +23,9 @@
       "Bash(npx -y postgres --version)",
       "Bash(npm run:*)",
       "Bash(netstat -ano)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(taskkill:*)",
+      "Bash(npm list:*)"
     ]
   }
 }

@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 
 type EvalResult = {
   score: number
@@ -20,78 +19,59 @@ type Props = {
   onFinish: () => void
 }
 
-const SCORE_COLOR = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600']
-
-function ScoreBar({ label, value, onInteract }: { label: string; value: number; onInteract: () => void }) {
-  return (
-    <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition" onClick={onInteract}>
-      <span className="w-20 text-xs text-gray-500 flex-shrink-0">{label}</span>
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-        <div
-          className="bg-[#2D5BE3] h-1.5 rounded-full transition-all"
-          style={{ width: `${(value / 5) * 100}%` }}
-        />
-      </div>
-      <span className="w-6 text-right text-xs font-medium text-gray-700">{value}</span>
-    </div>
-  )
-}
-
 export default function DesignResultCard({ question, answer, result, current, total, onNext, onFinish }: Props) {
   const isLast = current >= total
-  const scoreColor = SCORE_COLOR[Math.min(result.score, 5)]
-  const [showScore, setShowScore] = useState(true)
-
-  const handleScoreBarClick = () => {
-    setShowScore(false)
-  }
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-400">問 {current} / {total} の結果</span>
-        <span className="text-xs text-gray-400">{question.category}</span>
+      {/* 質問 */}
+      <div>
+        <h2 className="text-sm font-medium text-gray-500 mb-2">質問</h2>
+        <p className="text-gray-800 text-sm leading-relaxed">{question.content}</p>
       </div>
 
-      {showScore && (
-        <div className="text-center py-4">
-          <div className={`text-6xl font-bold ${scoreColor}`}>{result.score}</div>
-          <div className="text-sm text-gray-400 mt-1">/ 5点</div>
+      {/* あなたの回答 */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-500 mb-2">あなたの回答</h3>
+        <div className="bg-blue-50 rounded-2xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
+          {answer || '（スキップ）'}
+        </div>
+      </div>
+
+      {/* AI フィードバック */}
+      {result.feedback && (
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+          <p className="text-xs font-medium text-blue-700 mb-1">AIフィードバック</p>
+          <p className="text-sm text-blue-800 leading-relaxed">{result.feedback}</p>
         </div>
       )}
 
-      <div className="space-y-2.5">
-        <ScoreBar label="正確性" value={result.accuracy} onInteract={handleScoreBarClick} />
-        <ScoreBar label="網羅性" value={result.completeness} onInteract={handleScoreBarClick} />
-        <ScoreBar label="明瞭性" value={result.clarity} onInteract={handleScoreBarClick} />
-        <ScoreBar label="専門用語" value={result.terminology} onInteract={handleScoreBarClick} />
+      {/* ボタン */}
+      <div className="flex gap-3 pt-4">
+        {!isLast ? (
+          <button
+            onClick={onNext}
+            className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+          >
+            次の問題へ →
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={onNext}
+              className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
+            >
+              戻る
+            </button>
+            <button
+              onClick={onFinish}
+              className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+            >
+              完了 →
+            </button>
+          </>
+        )}
       </div>
-
-      <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4 space-y-2">
-        <div className="text-xs font-medium text-gray-500">AIフィードバック</div>
-        <p className="text-sm text-gray-800 leading-relaxed">{result.feedback}</p>
-      </div>
-
-      <details className="text-xs text-gray-400">
-        <summary className="cursor-pointer hover:text-gray-600">あなたの回答を確認</summary>
-        <p className="mt-2 leading-relaxed whitespace-pre-wrap">{answer || '（スキップ）'}</p>
-      </details>
-
-      {isLast ? (
-        <button
-          onClick={onFinish}
-          className="w-full bg-[#2D5BE3] hover:bg-blue-700 active:scale-95 text-white font-medium py-3.5 rounded-2xl transition-all"
-        >
-          結果を確認する →
-        </button>
-      ) : (
-        <button
-          onClick={onNext}
-          className="w-full bg-[#2D5BE3] hover:bg-blue-700 active:scale-95 text-white font-medium py-3.5 rounded-2xl transition-all"
-        >
-          次の問題へ →
-        </button>
-      )}
     </div>
   )
 }
