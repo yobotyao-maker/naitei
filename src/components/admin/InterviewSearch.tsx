@@ -8,6 +8,8 @@ type Row = {
   logic_score: number | null; japanese_score: number | null
   created_at: string
   question?: string; answer?: string; experience?: string
+  _design_answers?: Array<{id: string; question_number: number; user_answer: string; ai_score: number; ai_feedback: string}>
+  _interview_date?: string
 }
 
 const LEVELS = ['', 'P1', 'P2', 'P3', 'P4']
@@ -223,12 +225,8 @@ export default function InterviewSearch() {
                   <p className="font-mono font-medium text-gray-900">{selectedRow.eid || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">経験</p>
-                  <p className="text-gray-900">{selectedRow.experience || '未指定'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-0.5">言語</p>
-                  <p className="text-gray-900">{selectedRow.lang === 'ja' ? '日本語' : '中文'}</p>
+                  <p className="text-xs text-gray-500 mb-0.5">面接日</p>
+                  <p className="text-gray-900">{selectedRow._interview_date ? new Date(selectedRow._interview_date).toLocaleDateString('ja-JP') : '—'}</p>
                 </div>
               </div>
 
@@ -279,6 +277,36 @@ export default function InterviewSearch() {
                 <div>
                   <p className="text-xs font-medium text-gray-600 mb-1.5">AI 評価フィードバック</p>
                   <div className="bg-yellow-50 rounded-xl p-3 text-sm text-gray-700 whitespace-pre-wrap">{selectedRow.feedback}</div>
+                </div>
+              )}
+
+              {/* 設計答題記録 */}
+              {selectedRow._design_answers && selectedRow._design_answers.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-600 mb-3">設計答題記録</p>
+                  <div className="space-y-3">
+                    {selectedRow._design_answers.map((answer: any) => (
+                      <div key={answer.id} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-900">問 {answer.question_number}</span>
+                          <span className={`text-sm font-bold ${['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600'][answer.ai_score] || 'text-gray-500'}`}>
+                            {answer.ai_score}/5
+                          </span>
+                        </div>
+                        {answer.user_answer && (
+                          <details className="mb-2">
+                            <summary className="cursor-pointer text-xs font-medium text-gray-600 hover:text-gray-900">回答を表示</summary>
+                            <p className="mt-1 pl-2 py-1 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap text-xs text-gray-600">
+                              {answer.user_answer}
+                            </p>
+                          </details>
+                        )}
+                        {answer.ai_feedback && (
+                          <p className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">{answer.ai_feedback}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
