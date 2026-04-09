@@ -56,7 +56,7 @@ export default function InterviewSearch() {
         <div className="flex gap-2">
           <input
             className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 font-mono"
-            placeholder="EID を入力して検索..."
+            placeholder="EID 検索（受験者・面接官どちらでも可）"
             value={eid}
             onChange={e => setEid(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && search(0)}
@@ -118,9 +118,12 @@ export default function InterviewSearch() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   {r.eid ? (
-                    <span className="text-xs font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{r.eid}</span>
+                    <span className="text-xs font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded" title="Interviewee EID">{r.eid}</span>
                   ) : (
-                    <span className="text-xs text-gray-300 font-mono">EIDなし</span>
+                    <span className="text-xs text-gray-300 font-mono">受験者EIDなし</span>
+                  )}
+                  {r.interviewer_eid && (
+                    <span className="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-0.5 rounded" title="Interviewer EID">👤 {r.interviewer_eid}</span>
                   )}
                   <span className="text-sm font-medium text-gray-800">{r.job_role}</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${LEVEL_COLOR[r.level] ?? 'bg-gray-50 text-gray-500'}`}>
