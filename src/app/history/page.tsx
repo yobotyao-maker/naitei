@@ -24,32 +24,20 @@ export default async function HistoryPage({
   const activeTab = tab === 'design' ? 'design' : 'interview'
 
   // ── 面接履歴 ────────────────────────────────────────────────
-  // 先获取当前用户的所有 design_sessions
-  const { data: userSessions } = await supabase
-    .from('design_sessions')
-    .select('id')
-    .eq('user_id', user.id)
-
-  const sessionIds = userSessions?.map(s => s.id) ?? []
-
-  let interviews = null
-  if (sessionIds.length > 0) {
-    const { data } = await supabase
-      .from('design_answers')
-      .select(`
-        id,
-        question_number,
-        user_answer,
-        ai_score,
-        ai_feedback,
-        scoring_detail,
-        created_at
-      `)
-      .in('session_id', sessionIds)
-      .order('created_at', { ascending: false })
-      .limit(20)
-    interviews = data
-  }
+  // RLS 会自动过滤用户数据
+  const { data: interviews } = await supabase
+    .from('design_answers')
+    .select(`
+      id,
+      question_number,
+      user_answer,
+      ai_score,
+      ai_feedback,
+      scoring_detail,
+      created_at
+    `)
+    .order('created_at', { ascending: false })
+    .limit(20)
 
   // ── 設計コース履歴 ───────────────────────────────────────────
   const { data: designSessions } = await supabase
@@ -78,7 +66,7 @@ export default async function HistoryPage({
     .order('created_at', { ascending: false })
     .limit(20)
 
-  const interviewAvg = interviews && interviews.length > 0
+  const interviewAvg = interviews?.length
     ? (interviews.reduce((s, i) => s + (i.ai_score ?? 0), 0) / interviews.length).toFixed(1)
     : null
 
