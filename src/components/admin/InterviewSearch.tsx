@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react'
 
 type Row = {
-  id: string; user_id: string; eid: string | null; job_role: string; score: number
+  id: string; user_id: string; eid: string | null; interviewer_eid: string | null; job_role: string; score: number
   level: string; feedback: string; lang: string | null
   technical_score: number | null; expression_score: number | null
   logic_score: number | null; japanese_score: number | null
@@ -198,7 +198,11 @@ export default function InterviewSearch() {
               {/* 基本情報 */}
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">EID</p>
+                  <p className="text-xs text-gray-500 mb-0.5">Interviewer EID</p>
+                  <p className="font-mono font-medium text-gray-900">{selectedRow.interviewer_eid || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Interviewee EID</p>
                   <p className="font-mono font-medium text-gray-900">{selectedRow.eid || '—'}</p>
                 </div>
                 <div>

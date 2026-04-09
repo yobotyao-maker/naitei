@@ -141,10 +141,11 @@ GRANT  EXECUTE ON FUNCTION get_admin_user_detail TO authenticated;
 
 
 -- ────────────────────────────────────────────────────────────
--- 6. interviews に eid カラム追加
+-- 6. interviews に eid / interviewer_eid カラム追加
 -- ────────────────────────────────────────────────────────────
 ALTER TABLE interviews
-  ADD COLUMN IF NOT EXISTS eid TEXT;
+  ADD COLUMN IF NOT EXISTS eid             TEXT,   -- Interviewee EID（任意）
+  ADD COLUMN IF NOT EXISTS interviewer_eid TEXT;   -- Interviewer EID（必須入力）
 
 
 -- ────────────────────────────────────────────────────────────
@@ -177,7 +178,7 @@ AS $$
     ),
     'rows', (
       SELECT json_agg(r) FROM (
-        SELECT id, user_id, eid, job_role, experience, score, level, feedback,
+        SELECT id, user_id, eid, interviewer_eid, job_role, experience, score, level, feedback,
                lang, technical_score, expression_score, logic_score, japanese_score,
                question, answer, created_at
         FROM interviews

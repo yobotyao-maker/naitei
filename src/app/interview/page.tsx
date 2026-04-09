@@ -30,7 +30,8 @@ export default function InterviewPage() {
   const [jobRole, setJobRole] = useState('')
   const [experience, setExperience] = useState('')
   const [lang, setLang] = useState<Lang>('zh')
-  const [eid, setEid] = useState('')
+  const [interviewerEid, setInterviewerEid] = useState('')
+  const [intervieweeEid, setIntervieweeEid] = useState('')
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState<any>(null)
   const [history, setHistory] = useState<HistoryItem[]>([])
@@ -72,8 +73,8 @@ export default function InterviewPage() {
     }
   }
 
-  const handleStart = async (role: string, exp: string, l: Lang, e: string) => {
-    setJobRole(role); setExperience(exp); setLang(l); setEid(e); setHistory([])
+  const handleStart = async (role: string, exp: string, l: Lang, ivrEid: string, iveeEid: string) => {
+    setJobRole(role); setExperience(exp); setLang(l); setInterviewerEid(ivrEid); setIntervieweeEid(iveeEid); setHistory([])
     await fetchQuestion(role, exp, l, true, 0)
   }
 
@@ -83,7 +84,7 @@ export default function InterviewPage() {
       const res = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobRole, question, answer, lang, characterId, eid })
+        body: JSON.stringify({ jobRole, question, answer, lang, characterId, interviewerEid, intervieweeEid })
       })
       const data = await res.json()
       if (res.status === 402) {
