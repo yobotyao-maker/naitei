@@ -5,8 +5,8 @@ export type BackgroundData = {
   interviewer_eid: string
   interviewee_eid: string
   department: string | null
-  japanese_level: string
-  soft_skill_level: string
+  japanese_level: string | null
+  soft_skill_level: string | null
   basic_design_years: string
   requirement_years: string
   reviewer_years: string
@@ -15,17 +15,6 @@ export type BackgroundData = {
 type Props = {
   onSubmit: (data: BackgroundData) => void
 }
-
-const JAPANESE_LEVELS = [
-  { value: 'B', label: 'B — ビジネスレベル（JLPT N2相当）' },
-  { value: 'C', label: 'C — 上級ビジネス（JLPT N1・ネイティブ同等）' },
-]
-
-const SOFT_SKILL_LEVELS = [
-  { value: 'S1', label: 'S1 — 基本的な業務コミュニケーション' },
-  { value: 'S2', label: 'S2 — 主体的な調整・関係者折衝が可能' },
-  { value: 'S3', label: 'S3 — リーダーシップ・メンタリング能力あり' },
-]
 
 const DESIGN_YEARS = [
   { value: '<1', label: '1年未満' },
@@ -47,8 +36,8 @@ export default function BackgroundForm({ onSubmit }: Props) {
       interviewer_eid: fd.get('interviewer_eid') as string,
       interviewee_eid: fd.get('interviewee_eid') as string,
       department: (fd.get('department') as string) || null,
-      japanese_level: fd.get('japanese_level') as string,
-      soft_skill_level: fd.get('soft_skill_level') as string,
+      japanese_level: null,
+      soft_skill_level: null,
       basic_design_years: fd.get('basic_design_years') as string,
       requirement_years: fd.get('requirement_years') as string,
       reviewer_years: fd.get('reviewer_years') as string,
@@ -90,11 +79,12 @@ export default function BackgroundForm({ onSubmit }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Interviewer EID <span className="text-gray-400 text-xs font-normal">（任意）</span>
+          Interviewer EID <span className="text-red-400">*</span>
         </label>
         <input
           type="text"
           name="interviewer_eid"
+          required
           placeholder="例: EID12345"
           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
@@ -112,8 +102,6 @@ export default function BackgroundForm({ onSubmit }: Props) {
         />
       </div>
 
-      <Field label="日本語レベル" name="japanese_level" options={JAPANESE_LEVELS} />
-      <Field label="ソフトスキルレベル" name="soft_skill_level" options={SOFT_SKILL_LEVELS} />
       <Field label="基本設計経験年数" name="basic_design_years" options={DESIGN_YEARS} />
       <Field label="要件定義経験年数" name="requirement_years" options={BINARY_YEARS} />
       <Field label="設計レビュー経験年数" name="reviewer_years" options={BINARY_YEARS} />

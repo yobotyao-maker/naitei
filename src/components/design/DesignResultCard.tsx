@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 
 type EvalResult = {
   score: number
@@ -21,9 +22,9 @@ type Props = {
 
 const SCORE_COLOR = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600']
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
+function ScoreBar({ label, value, onInteract }: { label: string; value: number; onInteract: () => void }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition" onClick={onInteract}>
       <span className="w-20 text-xs text-gray-500 flex-shrink-0">{label}</span>
       <div className="flex-1 bg-gray-100 rounded-full h-1.5">
         <div
@@ -39,6 +40,11 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 export default function DesignResultCard({ question, answer, result, current, total, onNext, onFinish }: Props) {
   const isLast = current >= total
   const scoreColor = SCORE_COLOR[Math.min(result.score, 5)]
+  const [showScore, setShowScore] = useState(true)
+
+  const handleScoreBarClick = () => {
+    setShowScore(false)
+  }
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
@@ -47,16 +53,18 @@ export default function DesignResultCard({ question, answer, result, current, to
         <span className="text-xs text-gray-400">{question.category}</span>
       </div>
 
-      <div className="text-center py-4">
-        <div className={`text-6xl font-bold ${scoreColor}`}>{result.score}</div>
-        <div className="text-sm text-gray-400 mt-1">/ 5点</div>
-      </div>
+      {showScore && (
+        <div className="text-center py-4">
+          <div className={`text-6xl font-bold ${scoreColor}`}>{result.score}</div>
+          <div className="text-sm text-gray-400 mt-1">/ 5点</div>
+        </div>
+      )}
 
       <div className="space-y-2.5">
-        <ScoreBar label="正確性" value={result.accuracy} />
-        <ScoreBar label="網羅性" value={result.completeness} />
-        <ScoreBar label="明瞭性" value={result.clarity} />
-        <ScoreBar label="専門用語" value={result.terminology} />
+        <ScoreBar label="正確性" value={result.accuracy} onInteract={handleScoreBarClick} />
+        <ScoreBar label="網羅性" value={result.completeness} onInteract={handleScoreBarClick} />
+        <ScoreBar label="明瞭性" value={result.clarity} onInteract={handleScoreBarClick} />
+        <ScoreBar label="専門用語" value={result.terminology} onInteract={handleScoreBarClick} />
       </div>
 
       <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4 space-y-2">

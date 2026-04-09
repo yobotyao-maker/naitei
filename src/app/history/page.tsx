@@ -5,10 +5,10 @@ import { redirect } from 'next/navigation'
 import { P_LEVEL_LABELS } from '@/lib/design-scoring'
 
 const levelColor: Record<string, string> = {
-  S1: 'text-red-500 bg-red-50',
-  S2: 'text-orange-400 bg-orange-50',
-  S3: 'text-blue-500 bg-blue-50',
-  S4: 'text-yellow-500 bg-yellow-50',
+  P1: 'text-red-500 bg-red-50',
+  P2: 'text-orange-400 bg-orange-50',
+  P3: 'text-blue-500 bg-blue-50',
+  P4: 'text-green-500 bg-green-50',
 }
 
 const pLevelColor: Record<string, string> = {
@@ -41,7 +41,25 @@ export default async function HistoryPage({
   // ── 設計コース履歴 ───────────────────────────────────────────
   const { data: designSessions } = await supabase
     .from('design_sessions')
-    .select('id, selected_domains, background_score, technical_score, total_score, p_level, status, created_at, completed_at')
+    .select(`
+      id,
+      selected_domains,
+      background_score,
+      technical_score,
+      total_score,
+      p_level,
+      status,
+      created_at,
+      completed_at,
+      design_answers (
+        id,
+        question_number,
+        user_answer,
+        ai_score,
+        ai_feedback,
+        scoring_detail
+      )
+    `)
     .eq('user_id', user.id)
     .eq('status', 'completed')
     .order('created_at', { ascending: false })
@@ -199,37 +217,67 @@ export default async function HistoryPage({
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                {designSessions.map((session) => (
-                  <div key={session.id} className="bg-white rounded-2xl p-5 border border-gray-100">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {(session.selected_domains as string[] ?? []).slice(0, 3).map((d: string) => (
-                            <span key={d} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{d}</span>
-                          ))}
-                          {(session.selected_domains as string[] ?? []).length > 3 && (
-                            <span className="text-xs text-gray-400">+{(session.selected_domains as string[]).length - 3}</span>
-                          )}
+              <div className="space-y-4">
+                {designSessions.map((session: any) => (
+                  <div key={session.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    {/* セッションヘッダー */}
+                    <div className="p-5 border-b border-gray-50">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {(session.selected_domains as string[] ?? []).slice(0, 3).map((d: string) => (
+                              <span key={d} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{d}</span>
+                            ))}
+                            {(session.selected_domains as string[] ?? []).length > 3 && (
+                              <span className="text-xs text-gray-400">+{(session.selected_domains as string[]).length - 3}</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {new Date(session.created_at).toLocaleDateString('ja-JP', {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                              hour: '2-digit', minute: '2-digit',
+                            })}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          {new Date(session.created_at).toLocaleDateString('ja-JP', {
-                            year: 'numeric', month: 'short', day: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
-                          })}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pLevelColor[session.p_level] ?? 'text-gray-500 bg-gray-50'}`}>
+                            {session.p_level}
+                          </span>
+                          <span className="text-lg font-medium text-gray-900">{session.total_score}<span className="text-xs text-gray-400">/100</span></span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pLevelColor[session.p_level] ?? 'text-gray-500 bg-gray-50'}`}>
-                          {session.p_level}
-                        </span>
-                        <span className="text-lg font-medium text-gray-900">{session.total_score}<span className="text-xs text-gray-400">/100</span></span>
+                      <div className="flex gap-4 text-xs text-gray-400">
+                        <span>背景: {session.background_score}/50</span>
+                        <span>技術: {session.technical_score}/50</span>
                       </div>
                     </div>
-                    <div className="flex gap-4 text-xs text-gray-400">
-                      <span>背景: {session.background_score}/50</span>
-                      <span>技術: {session.technical_score}/50</span>
-                    </div>
+
+                    {/* 答題記録 */}
+                    {session.design_answers && session.design_answers.length > 0 && (
+                      <div className="space-y-0">
+                        {session.design_answers.map((answer: any, idx: number) => (
+                          <div key={answer.id} className={`p-4 ${idx !== session.design_answers.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                            <div className="flex items-start justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-900">問 {answer.question_number}</span>
+                              <span className={`text-lg font-bold ${['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500', 'text-green-600'][answer.ai_score] || 'text-gray-500'}`}>
+                                {answer.ai_score}/5
+                              </span>
+                            </div>
+                            {answer.user_answer && (
+                              <details className="text-xs text-gray-500 mb-2">
+                                <summary className="cursor-pointer hover:text-gray-700 font-medium">回答を表示</summary>
+                                <p className="mt-1 pl-2 py-1 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap text-gray-600">
+                                  {answer.user_answer}
+                                </p>
+                              </details>
+                            )}
+                            {answer.ai_feedback && (
+                              <p className="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded">{answer.ai_feedback}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

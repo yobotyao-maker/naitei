@@ -45,15 +45,17 @@ export const REVIEWER_YEARS_SCORE: Record<string, number> = {
 }
 
 export function calcBackgroundScore(params: {
-  japanese_level: string
-  soft_skill_level: string
+  japanese_level: string | null
+  soft_skill_level: string | null
   basic_design_years: string
   requirement_years: string
   reviewer_years: string
 }): number {
+  const japaneseScore = params.japanese_level ? (JAPANESE_LEVEL_SCORE[params.japanese_level] ?? 0) : 0
+  const softSkillScore = params.soft_skill_level ? (SOFT_SKILL_SCORE[params.soft_skill_level] ?? 0) : 0
   return (
-    (JAPANESE_LEVEL_SCORE[params.japanese_level] ?? 0) +
-    (SOFT_SKILL_SCORE[params.soft_skill_level] ?? 0) +
+    japaneseScore +
+    softSkillScore +
     (BASIC_DESIGN_YEARS_SCORE[params.basic_design_years] ?? 0) +
     (REQUIREMENT_YEARS_SCORE[params.requirement_years] ?? 0) +
     (REVIEWER_YEARS_SCORE[params.reviewer_years] ?? 0)

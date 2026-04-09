@@ -51,7 +51,7 @@ export default function StripeOrders() {
             <div>
               <div className="flex items-center gap-2 mb-0.5">
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PLAN_BADGE[o.plan] ?? 'bg-gray-50 text-gray-500'}`}>
-                  {o.plan === 'pack' ? 'Pack ¥980' : o.plan === 'pro' ? 'Pro ¥1,980' : o.plan}
+                  {o.plan === 'pack' ? 'Pack ¥2,940' : o.plan === 'pro' ? 'Pro ¥5,940' : o.plan}
                 </span>
               </div>
               <span className="text-xs text-gray-400">{o.email ?? '—'}</span>

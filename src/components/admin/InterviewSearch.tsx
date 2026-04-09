@@ -10,12 +10,12 @@ type Row = {
   question?: string; answer?: string; experience?: string
 }
 
-const LEVELS = ['', 'S1', 'S2', 'S3', 'S4']
+const LEVELS = ['', 'P1', 'P2', 'P3', 'P4']
 const LEVEL_COLOR: Record<string, string> = {
-  S1: 'text-red-500 bg-red-50',
-  S2: 'text-orange-400 bg-orange-50',
-  S3: 'text-blue-500 bg-blue-50',
-  S4: 'text-yellow-500 bg-yellow-50',
+  P1: 'text-red-500 bg-red-50',
+  P2: 'text-orange-400 bg-orange-50',
+  P3: 'text-blue-500 bg-blue-50',
+  P4: 'text-green-500 bg-green-50',
 }
 
 export default function InterviewSearch() {

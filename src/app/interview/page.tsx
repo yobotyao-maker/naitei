@@ -113,7 +113,7 @@ export default function InterviewPage() {
         const data = await res.json()
         results.push({ question: q, answer: a, result: data })
       } catch {
-        results.push({ question: q, answer: a, result: { score: 0, level: 'S1', feedback: '採点に失敗しました' } })
+        results.push({ question: q, answer: a, result: { score: 0, level: 'P1', feedback: '採点に失敗しました' } })
       }
     }
 

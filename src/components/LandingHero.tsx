@@ -1,19 +1,31 @@
 'use client'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import IntroductionModal from './IntroductionModal'
 
 const stats = [
   { value: 'AI',    label: '本番同様の質問' },
-  { value: 'S1〜S4', label: '能力レベル評価' },
+  { value: 'P1～P4', label: '設計力評価' },
   { value: '3秒',   label: '即時フィードバック' },
 ]
 
 export default function LandingHero() {
   const [visible, setVisible] = useState(false)
+  const [showIntro, setShowIntro] = useState(false)
   useEffect(() => { setTimeout(() => setVisible(true), 100) }, [])
 
   return (
-    <div className={`flex flex-col items-center justify-center min-h-screen px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <>
+      <IntroductionModal isOpen={showIntro} onClose={() => setShowIntro(false)} />
+      <div className={`flex flex-col items-center justify-center min-h-screen px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        {/* Help Button */}
+        <button
+          onClick={() => setShowIntro(true)}
+          className="fixed top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
+          title="アプリについて"
+        >
+          ?
+        </button>
       <div className="mb-5 inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-sm px-4 py-1.5 rounded-full font-medium border border-blue-100">
         <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
         AI × 面接練習 · 在日IT人向け
@@ -56,6 +68,7 @@ export default function LandingHero() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+    </>
   )
 }

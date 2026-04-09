@@ -10,7 +10,7 @@ type BenchmarkData = {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  S1: 'bg-red-200', S2: 'bg-orange-200', S3: 'bg-blue-300', S4: 'bg-yellow-300'
+  P1: 'bg-red-200', P2: 'bg-orange-200', P3: 'bg-blue-300', P4: 'bg-green-300'
 }
 
 export default function BenchmarkCard({ jobRole, userScore }: {
@@ -43,7 +43,7 @@ export default function BenchmarkCard({ jobRole, userScore }: {
 
   const diff = (userScore - (data.avg_score ?? 0)).toFixed(1)
   const isAbove = userScore >= (data.avg_score ?? 0)
-  const levels = ['S1', 'S2', 'S3', 'S4']
+  const levels = ['P1', 'P2', 'P3', 'P4']
   const total = data.count ?? 1
 
   return (

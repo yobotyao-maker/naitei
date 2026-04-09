@@ -22,7 +22,7 @@ type DesignStats = {
 }
 
 const LEVEL_COLOR: Record<string, string> = {
-  S1: '#FCA5A5', S2: '#FCD34D', S3: '#93C5FD', S4: '#6EE7B7'
+  P1: '#FCA5A5', P2: '#FCD34D', P3: '#93C5FD', P4: '#6EE7B7'
 }
 
 const PLAN_LABEL: Record<string, string> = { free: 'Free', pack: 'Pack', pro: 'Pro' }
@@ -150,7 +150,7 @@ export default function AdminDashboard({
         <div className="bg-white rounded-2xl p-5 border border-gray-100">
           <div className="text-sm font-medium text-gray-700 mb-4">レベル分布</div>
           <div className="space-y-3">
-            {['S1','S2','S3','S4'].map(lv => {
+            {['P1','P2','P3','P4'].map(lv => {
               const cnt = s?.level_dist?.[lv] ?? 0
               const pct = levelTotal > 0 ? Math.round((cnt / levelTotal) * 100) : 0
               return (

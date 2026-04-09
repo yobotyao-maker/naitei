@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
       selected_domains,
     } = body
 
+    // Interviewer EID は必須
+    if (!interviewer_eid || !interviewer_eid.trim()) {
+      return NextResponse.json({ error: 'Interviewer EID is required' }, { status: 400 })
+    }
+
     const background_score = calcBackgroundScore({
       japanese_level,
       soft_skill_level,
@@ -72,7 +77,7 @@ export async function POST(req: NextRequest) {
       status: 'in_progress',
     }
     if (interview_date)    insertData.interview_date    = interview_date
-    if (interviewer_eid)   insertData.interviewer_eid   = interviewer_eid
+    insertData.interviewer_eid   = interviewer_eid
     if (interviewee_eid)   insertData.interviewee_eid   = interviewee_eid
     if (department)        insertData.department        = department
 

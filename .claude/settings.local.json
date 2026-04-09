@@ -18,7 +18,12 @@
       "Bash(git -C /c/Users/wenxiong.yao/Naitei status --short)",
       "Bash(git -C /c/Users/wenxiong.yao/Naitei add src/app/api/design/ src/app/design/ src/components/design/ src/lib/design-prompts.ts src/lib/design-scoring.ts supabase/design_migration.sql src/app/admin/page.tsx src/app/history/page.tsx src/components/AdminDashboard.tsx src/components/LandingHero.tsx)",
       "Bash(git:*)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(npx supabase:*)",
+      "Bash(npx -y postgres --version)",
+      "Bash(npm run:*)",
+      "Bash(netstat -ano)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

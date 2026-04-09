@@ -111,14 +111,14 @@ export default function ResultCard({ result, jobRole, lang, questionCount, chara
             残り <span className="text-base font-bold">{result.remaining}</span> 回
           </p>
           <p className="text-xs text-orange-400 mt-0.5">
-            足りなくなったら ¥980 でいつでも +5回 追加できます
+            足りなくなったら ¥2,940 でいつでも +5回 追加できます
           </p>
         </div>
       )}
       {typeof result.remaining === 'number' && result.remaining === 0 && (
         <div className="mt-4 bg-blue-50 rounded-xl px-4 py-3 text-center">
           <p className="text-xs text-blue-500 font-medium">練習回数を使い切りました</p>
-          <p className="text-xs text-blue-400 mt-0.5">¥980 で +5回 追加できます</p>
+          <p className="text-xs text-blue-400 mt-0.5">¥2,940 で +5回 追加できます</p>
         </div>
       )}
 
