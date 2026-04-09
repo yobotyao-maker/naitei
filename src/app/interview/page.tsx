@@ -4,7 +4,6 @@ import Link from 'next/link'
 import InterviewForm from '@/components/InterviewForm'
 import QuestionCard from '@/components/QuestionCard'
 import AnswerInput from '@/components/AnswerInput'
-import ResultCard from '@/components/ResultCard'
 import SummaryCard, { type HistoryItem } from '@/components/SummaryCard'
 import StepBar from '@/components/StepBar'
 import LoadingDots from '@/components/LoadingDots'
@@ -14,32 +13,33 @@ import { CATEGORY_TO_CHARACTER, type QuestionCategory } from '@/components/manga
 import LogoutButton from '@/components/LogoutButton'
 import Logo from '@/components/Logo'
 
-type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'loading-r' | 'result' | 'summary' | 'upgrade'
+type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'scoring' | 'summary' | 'upgrade'
 
 const stepIndex: Record<Step, number> = {
   'form': 0, 'loading-q': 0,
   'question': 1,
-  'answer': 2, 'loading-r': 2,
-  'result': 3, 'summary': 3, 'upgrade': 3,
+  'answer': 2,
+  'scoring': 3, 'summary': 3, 'upgrade': 3,
 }
 
 const MAX_QUESTIONS = 30
 
+type PendingItem = { question: string; answer: string }
+
 export default function InterviewPage() {
-  const [step, setStep] = useState<Step>('form')
-  const [jobRole, setJobRole] = useState('')
-  const [experience, setExperience] = useState('')
-  const [lang, setLang] = useState<Lang>('zh')
+  const [step,          setStep]          = useState<Step>('form')
+  const [jobRole,       setJobRole]       = useState('')
+  const [experience,    setExperience]    = useState('')
+  const [lang,          setLang]          = useState<Lang>('zh')
   const [interviewerEid, setInterviewerEid] = useState('')
   const [intervieweeEid, setIntervieweeEid] = useState('')
-  const [question, setQuestion] = useState('')
-  const [result, setResult] = useState<any>(null)
-  const [history, setHistory] = useState<HistoryItem[]>([])
-  const [currentAnswer, setCurrentAnswer] = useState('')
-  const [quotaInfo, setQuotaInfo] = useState<{ used: number; limit: number }>({ used: 0, limit: 5 })
-  const [characterId, setCharacterId] = useState<string>('tanaka')
+  const [question,      setQuestion]      = useState('')
+  const [history,       setHistory]       = useState<HistoryItem[]>([])
+  const [pending,       setPending]       = useState<PendingItem[]>([])
+  const [characterId,   setCharacterId]   = useState<string>('tanaka')
+  const [quotaInfo,     setQuotaInfo]     = useState<{ used: number; limit: number }>({ used: 0, limit: 5 })
+  const [scoringProgress, setScoringProgress] = useState(0)
 
-  // 根据问题在会话中的位置轮换角色
   function pickCharacter(index: number): string {
     const rotation: QuestionCategory[] = [
       'technical', 'culture', 'process', 'governance', 'vision',
@@ -66,7 +66,8 @@ export default function InterviewPage() {
         return
       }
       if (!res.ok || !data.question) throw new Error(data.error ?? 'Failed to generate question')
-      setQuestion(data.question); setStep('question')
+      setQuestion(data.question)
+      setStep('answer')
     } catch {
       setStep('form')
       alert('質問の生成に失敗しました。もう一度お試しください。')
@@ -74,48 +75,58 @@ export default function InterviewPage() {
   }
 
   const handleStart = async (role: string, exp: string, l: Lang, ivrEid: string, iveeEid: string) => {
-    setJobRole(role); setExperience(exp); setLang(l); setInterviewerEid(ivrEid); setIntervieweeEid(iveeEid); setHistory([])
+    setJobRole(role); setExperience(exp); setLang(l)
+    setInterviewerEid(ivrEid); setIntervieweeEid(iveeEid)
+    setHistory([]); setPending([])
     await fetchQuestion(role, exp, l, true, 0)
   }
 
-  const handleAnswer = async (answer: string) => {
-    setCurrentAnswer(answer); setStep('loading-r')
-    try {
-      const res = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobRole, question, answer, lang, characterId, interviewerEid, intervieweeEid })
-      })
-      const data = await res.json()
-      if (res.status === 402) {
-        setQuotaInfo({ used: data.used, limit: data.limit })
-        setStep('upgrade')
-        return
+  // 回答保存 → 次の問題へ
+  const handleNext = async (answer: string) => {
+    const newPending = [...pending, { question, answer }]
+    setPending(newPending)
+    setStep('question')
+    await fetchQuestion(jobRole, experience, lang, false, newPending.length)
+  }
+
+  // 回答保存 → 一括採点
+  const handleFinish = async (answer: string) => {
+    const allPending = [...pending, { question, answer }]
+    setPending(allPending)
+    await evaluateAll(allPending)
+  }
+
+  const evaluateAll = async (items: PendingItem[]) => {
+    setStep('scoring')
+    setScoringProgress(0)
+    const results: HistoryItem[] = []
+
+    for (let i = 0; i < items.length; i++) {
+      setScoringProgress(i + 1)
+      const { question: q, answer: a } = items[i]
+      try {
+        const res = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, interviewerEid, intervieweeEid })
+        })
+        const data = await res.json()
+        results.push({ question: q, answer: a, result: data })
+      } catch {
+        results.push({ question: q, answer: a, result: { score: 0, level: 'S1', feedback: '採点に失敗しました' } })
       }
-      if (!res.ok) throw new Error(data.error ?? 'Failed to evaluate')
-      setResult(data); setStep('result')
-    } catch {
-      setStep('answer')
-      alert('採点に失敗しました。もう一度お試しください。')
     }
-  }
 
-  const handleContinue = async () => {
-    const nextIndex = history.length + 1
-    setHistory(prev => [...prev, { question, answer: currentAnswer, result }])
-    await fetchQuestion(jobRole, experience, lang, false, nextIndex)
-  }
-
-  const handleFinish = () => {
-    setHistory(prev => [...prev, { question, answer: currentAnswer, result }])
+    setHistory(results)
     setStep('summary')
   }
 
   const handleRestart = () => {
-    setStep('form'); setResult(null); setQuestion(''); setHistory([]); setCurrentAnswer('')
+    setStep('form'); setHistory([]); setPending([])
+    setQuestion(''); setScoringProgress(0)
   }
 
-  const questionCount = history.length + 1
+  const questionCount = pending.length + 1
 
   return (
     <main className="min-h-screen bg-[#F5F6FA] px-4 py-10">
@@ -123,33 +134,68 @@ export default function InterviewPage() {
         <div className="flex items-center justify-between mb-8">
           <Logo />
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">第 {questionCount} 題 / {MAX_QUESTIONS}</span>
+            {step !== 'form' && step !== 'summary' && step !== 'scoring' && (
+              <span className="text-sm text-gray-400">第 {questionCount} 題 / {MAX_QUESTIONS}</span>
+            )}
             <LogoutButton />
           </div>
         </div>
 
-        {step !== 'summary' && step !== 'upgrade' && <StepBar current={stepIndex[step]} />}
+        {step !== 'summary' && step !== 'upgrade' && step !== 'scoring' && (
+          <StepBar current={stepIndex[step]} />
+        )}
 
-        {step === 'form'      && <InterviewForm onSubmit={handleStart} />}
+        {step === 'form' && <InterviewForm onSubmit={handleStart} />}
+
         {step === 'loading-q' && <LoadingDots label="AIが質問を考えています..." />}
-        {step === 'question'  && <QuestionCard question={question} jobRole={jobRole} lang={lang} characterId={characterId} onReady={() => setStep('answer')} />}
-        {step === 'answer'    && <AnswerInput question={question} lang={lang} onSubmit={handleAnswer} />}
-        {step === 'loading-r' && <LoadingDots label="AIが採点しています..." />}
-        {step === 'result'    && (
-          <ResultCard
-            result={result}
+
+        {step === 'question' && (
+          <QuestionCard
+            question={question}
             jobRole={jobRole}
             lang={lang}
-            questionCount={questionCount}
             characterId={characterId}
-            onContinue={questionCount < MAX_QUESTIONS ? handleContinue : handleFinish}
+            onReady={() => setStep('answer')}
+          />
+        )}
+
+        {step === 'answer' && (
+          <AnswerInput
+            question={question}
+            lang={lang}
+            onNext={handleNext}
             onFinish={handleFinish}
           />
         )}
-        {step === 'summary'   && (
-          <SummaryCard history={history} jobRole={jobRole} lang={lang} onRestart={handleRestart} />
+
+        {step === 'scoring' && (
+          <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 text-center">
+            <div className="text-4xl mb-4">🤖</div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">採点中...</h2>
+            <p className="text-sm text-gray-400 mb-6">
+              {scoringProgress} / {pending.length} 問を採点しました
+            </p>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-[#2D5BE3] h-2 rounded-full transition-all duration-500"
+                style={{ width: `${pending.length > 0 ? (scoringProgress / pending.length) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
         )}
-        {step === 'upgrade'   && (
+
+        {step === 'summary' && (
+          <SummaryCard
+            history={history}
+            jobRole={jobRole}
+            lang={lang}
+            interviewerEid={interviewerEid}
+            intervieweeEid={intervieweeEid}
+            onRestart={handleRestart}
+          />
+        )}
+
+        {step === 'upgrade' && (
           <UpgradePrompt used={quotaInfo.used} limit={quotaInfo.limit} onBack={handleRestart} />
         )}
       </div>

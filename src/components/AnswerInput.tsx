@@ -9,10 +9,11 @@ declare global {
   }
 }
 
-export default function AnswerInput({ question, lang, onSubmit }: {
+export default function AnswerInput({ question, lang, onNext, onFinish }: {
   question: string
   lang: Lang
-  onSubmit: (a: string) => void
+  onNext: (a: string) => void
+  onFinish: (a: string) => void
 }) {
   const [answer, setAnswer] = useState('')
   const [recording, setRecording] = useState(false)
@@ -65,7 +66,7 @@ export default function AnswerInput({ question, lang, onSubmit }: {
         <p className="text-sm text-gray-700 leading-relaxed">{question}</p>
       </div>
 
-      {/* 语音录入 */}
+      {/* 語音録入 */}
       {!unsupported && (
         <div className="flex flex-col items-center mb-5">
           <button
@@ -88,7 +89,7 @@ export default function AnswerInput({ question, lang, onSubmit }: {
         </div>
       )}
 
-      {/* 文字输入（折叠） */}
+      {/* 文字入力 */}
       <div className="border-t border-gray-100 pt-4">
         <button
           onClick={() => setShowText(v => !v)}
@@ -124,13 +125,22 @@ export default function AnswerInput({ question, lang, onSubmit }: {
         </p>
       )}
 
-      <button
-        onClick={() => canSubmit && onSubmit(answer)}
-        disabled={!canSubmit}
-        className="mt-4 w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
-      >
-        採点してもらう →
-      </button>
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={() => canSubmit && onNext(answer)}
+          disabled={!canSubmit}
+          className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
+        >
+          次の問題 →
+        </button>
+        <button
+          onClick={() => canSubmit && onFinish(answer)}
+          disabled={!canSubmit}
+          className="flex-1 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 text-gray-600 font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
+        >
+          採点して終了
+        </button>
+      </div>
     </div>
   )
 }
