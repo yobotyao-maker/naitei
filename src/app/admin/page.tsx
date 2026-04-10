@@ -11,13 +11,11 @@ export default async function AdminPage() {
     { data: designStats },
     { data: recent },
     { data: recentDesign },
-    { data: users },
   ] = await Promise.all([
     supabase.rpc('get_admin_stats'),
     supabase.rpc('get_design_stats'),
     supabase.from('interviews').select('id, job_role, score, level, created_at').order('created_at', { ascending: false }).limit(20),
     supabase.from('design_sessions').select('id, selected_domains, total_score, p_level, created_at').eq('status', 'completed').order('created_at', { ascending: false }).limit(10),
-    supabase.from('subscriptions').select('user_id, plan, interviews_used, interviews_limit, created_at').order('created_at', { ascending: false }).limit(20),
   ])
 
   return (
@@ -28,7 +26,6 @@ export default async function AdminPage() {
         designStats={designStats}
         recent={recent ?? []}
         recentDesign={recentDesign ?? []}
-        users={users ?? []}
       />
     </div>
   )

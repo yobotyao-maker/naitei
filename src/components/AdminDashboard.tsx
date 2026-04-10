@@ -26,13 +26,12 @@ const P_LEVEL_COLOR: Record<string, string> = {
 }
 
 export default function AdminDashboard({
-  stats, designStats, recent, recentDesign, users
+  stats, designStats, recent, recentDesign
 }: {
   stats:        Stats | null
   designStats:  DesignStats | null
   recent:       any[]
   recentDesign: any[]
-  users:        any[]
 }) {
   const chartRef = useRef<HTMLCanvasElement>(null)
 
@@ -161,29 +160,6 @@ export default function AdminDashboard({
         ) : (
           <p className="text-xs text-gray-300 text-center py-4">データなし</p>
         )}
-      </div>
-
-      {/* 最近用户 */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">最近登録したユーザー</span>
-          <span className="text-xs text-gray-400">直近20件</span>
-        </div>
-        <div className="divide-y divide-gray-50">
-          {users.length === 0 && (
-            <p className="text-xs text-gray-300 text-center py-6">ユーザーなし</p>
-          )}
-          {users.map(u => (
-            <div key={u.user_id} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <span className="text-xs font-mono text-gray-400">{u.user_id.slice(0,8)}…</span>
-                <span className="text-xs text-gray-400 ml-2">
-                  {new Date(u.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* 最近面试记录 */}
