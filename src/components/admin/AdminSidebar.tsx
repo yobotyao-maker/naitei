@@ -14,7 +14,7 @@ const NAV = [
 ]
 
 const BOTTOM_NAV = [
-  { href: '/admin/interviews',      label: '面接記録',        disabled: false, gray: true },
+  { href: '/admin/interviews',      label: '面接練習',        disabled: false, gray: true },
 ]
 
 export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
