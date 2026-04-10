@@ -136,13 +136,15 @@ export default function DesignPage() {
     }
   }
 
-  // スキップ（スコア 0）
+  // スキップ（スコア 0）→ 直接進入下一題
   const handleSkip = () => {
     const skipped: EvalResult = { score: 0, accuracy: 0, completeness: 0, clarity: 0, terminology: 0, feedback: 'スキップしました' }
+    setAnswers(prev => [...prev, { question: currentQuestion, answer: '', result: skipped }])
+    setCurrentIdx(i => i + 1)
+    setCurrentResult(null)
     setCurrentAnswer('')
-    setCurrentResult(skipped)
-    setPendingFeedback('スキップしました')
-    setStep('result')
+    setPendingFeedback('')
+    setStep('question')
   }
 
   // ── 次の問題へ ────────────────────────────────────────────────
