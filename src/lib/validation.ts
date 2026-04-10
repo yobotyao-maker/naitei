@@ -70,10 +70,10 @@ export const validationMessages: Record<string, string> = {
  * 从Zod验证错误获取用户友好的消息
  */
 export function getValidationErrorMessage(error: z.ZodError): string {
-  const firstError = error.errors[0]
+  const firstError = (error as any).errors?.[0]
   if (!firstError) return 'Validation failed'
 
-  const path = firstError.path.join('.')
+  const path = (firstError.path as any[]).join('.')
   const message = firstError.message
 
   return validationMessages[message] || message
