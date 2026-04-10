@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import type { Lang } from '@/lib/prompts'
 import { InterviewFormSchema } from '@/lib/validation'
-import type { ZodError } from 'zod'
+import { ZodError } from 'zod'
 
 const PRESET_ROLES = ['Javaエンジニア', 'フロントエンド', 'インフラ', 'PM', 'データエンジニア']
 const PRESET_EXPS = ['1年未満', '1〜3年', '3〜5年', '5年以上']
@@ -116,10 +116,9 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
               setErrors({})
               onSubmit(result.jobRole, result.experience, result.lang, result.intervieweeEid)
             } catch (e) {
-              if (e instanceof Error && 'errors' in e) {
-                const zodError = e as unknown as ZodError
+              if (e instanceof ZodError) {
                 const newErrors: Record<string, string> = {}
-                zodError.errors.forEach(err => {
+                e.issues.forEach((err) => {
                   const path = err.path.join('.')
                   newErrors[path] = err.message
                 })
