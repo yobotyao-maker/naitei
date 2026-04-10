@@ -18,14 +18,26 @@ export default function LandingHero() {
     <>
       <IntroductionModal isOpen={showIntro} onClose={() => setShowIntro(false)} />
       <div className={`flex flex-col items-center justify-center min-h-screen px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        {/* Help Button */}
-        <button
-          onClick={() => setShowIntro(true)}
-          className="fixed top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
-          title="アプリについて"
-        >
-          ?
-        </button>
+        {/* Header Buttons */}
+        <div className="fixed top-6 right-6 flex items-center gap-2">
+          {/* Feedback Button */}
+          <Link
+            href="/feedback"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
+            title="フィードバック"
+          >
+            💬
+          </Link>
+
+          {/* Help Button */}
+          <button
+            onClick={() => setShowIntro(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
+            title="アプリについて"
+          >
+            ?
+          </button>
+        </div>
       <div className="mb-5 inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-sm px-4 py-1.5 rounded-full font-medium border border-blue-100">
         <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
         AI × 面接練習 · 在日IT人向け
