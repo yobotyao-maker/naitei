@@ -13,18 +13,20 @@ import { CATEGORY_TO_CHARACTER, type QuestionCategory } from '@/components/manga
 import LogoutButton from '@/components/LogoutButton'
 import Logo from '@/components/Logo'
 
-type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'scoring' | 'summary' | 'upgrade'
+type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'evaluating' | 'result' | 'summary' | 'upgrade'
 
 const stepIndex: Record<Step, number> = {
   'form': 0, 'loading-q': 0,
   'question': 1,
   'answer': 2,
-  'scoring': 3, 'summary': 3, 'upgrade': 3,
+  'evaluating': 2, 'result': 2,
+  'summary': 3, 'upgrade': 3,
 }
 
 const MAX_QUESTIONS = 30
 
 type PendingItem = { question: string; answer: string }
+type ResultItem = { question: string; answer: string; result: any }
 
 export default function InterviewPage() {
   const [step,          setStep]          = useState<Step>('form')
@@ -38,7 +40,7 @@ export default function InterviewPage() {
   const [pending,       setPending]       = useState<PendingItem[]>([])
   const [characterId,   setCharacterId]   = useState<string>('tanaka')
   const [quotaInfo,     setQuotaInfo]     = useState<{ used: number; limit: number }>({ used: 0, limit: 5 })
-  const [scoringProgress, setScoringProgress] = useState(0)
+  const [currentResult, setCurrentResult] = useState<ResultItem | null>(null)
 
   function pickCharacter(index: number): string {
     const rotation: QuestionCategory[] = [
@@ -81,49 +83,72 @@ export default function InterviewPage() {
     await fetchQuestion(role, exp, l, true, 0)
   }
 
-  // 回答保存 → 次の問題へ
+  // 1問評点
+  const evaluateOne = async (q: string, a: string) => {
+    setStep('evaluating')
+    try {
+      const res = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, interviewerEid, intervieweeEid })
+      })
+      const data = await res.json()
+      setCurrentResult({ question: q, answer: a, result: data })
+      setStep('result')
+    } catch {
+      setCurrentResult({ question: q, answer: a, result: { score: 0, level: 'P1', feedback: '採点に失敗しました' } })
+      setStep('result')
+    }
+  }
+
+  // 回答保存 → 評点 → 次の問題へ
   const handleNext = async (answer: string) => {
     const newPending = [...pending, { question, answer }]
     setPending(newPending)
-    setStep('question')
-    await fetchQuestion(jobRole, experience, lang, false, newPending.length)
+    await evaluateOne(question, answer)
   }
 
-  // 回答保存 → 一括採点
+  // 回答保存 → 評点 → 完了
   const handleFinish = async (answer: string) => {
     const allPending = [...pending, { question, answer }]
     setPending(allPending)
-    await evaluateAll(allPending)
+    await evaluateOne(question, answer)
   }
 
-  const evaluateAll = async (items: PendingItem[]) => {
-    setStep('scoring')
-    setScoringProgress(0)
-    const results: HistoryItem[] = []
-
-    for (let i = 0; i < items.length; i++) {
-      setScoringProgress(i + 1)
-      const { question: q, answer: a } = items[i]
-      try {
-        const res = await fetch('/api/evaluate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, interviewerEid, intervieweeEid })
-        })
-        const data = await res.json()
-        results.push({ question: q, answer: a, result: data })
-      } catch {
-        results.push({ question: q, answer: a, result: { score: 0, level: 'P1', feedback: '採点に失敗しました' } })
-      }
+  // 評点済み結果から次の問題へ
+  const handleResultNext = async () => {
+    const newHistory = [...history]
+    if (currentResult) {
+      newHistory.push({
+        question: currentResult.question,
+        answer: currentResult.answer,
+        result: currentResult.result
+      })
     }
+    setHistory(newHistory)
+    setCurrentResult(null)
+    setStep('question')
+    await fetchQuestion(jobRole, experience, lang, false, pending.length + 1)
+  }
 
-    setHistory(results)
+  // 評点済み結果から完了へ
+  const handleResultFinish = () => {
+    const newHistory = [...history]
+    if (currentResult) {
+      newHistory.push({
+        question: currentResult.question,
+        answer: currentResult.answer,
+        result: currentResult.result
+      })
+    }
+    setHistory(newHistory)
+    setCurrentResult(null)
     setStep('summary')
   }
 
   const handleRestart = () => {
     setStep('form'); setHistory([]); setPending([])
-    setQuestion(''); setScoringProgress(0)
+    setQuestion(''); setCurrentResult(null)
   }
 
   const questionCount = pending.length + 1
@@ -134,14 +159,14 @@ export default function InterviewPage() {
         <div className="flex items-center justify-between mb-8">
           <Logo />
           <div className="flex items-center gap-4">
-            {step !== 'form' && step !== 'summary' && step !== 'scoring' && (
+            {step !== 'form' && step !== 'summary' && step !== 'evaluating' && step !== 'result' && (
               <span className="text-sm text-gray-400">第 {questionCount} 題 / {MAX_QUESTIONS}</span>
             )}
             <LogoutButton />
           </div>
         </div>
 
-        {step !== 'summary' && step !== 'upgrade' && step !== 'scoring' && (
+        {step !== 'summary' && step !== 'upgrade' && step !== 'evaluating' && step !== 'result' && (
           <StepBar current={stepIndex[step]} />
         )}
 
@@ -168,18 +193,79 @@ export default function InterviewPage() {
           />
         )}
 
-        {step === 'scoring' && (
+        {step === 'evaluating' && (
           <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 text-center">
             <div className="text-4xl mb-4">🤖</div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">採点中...</h2>
-            <p className="text-sm text-gray-400 mb-6">
-              {scoringProgress} / {pending.length} 問を採点しました
-            </p>
+            <p className="text-sm text-gray-400 mb-6">AIが回答を評価しています</p>
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-[#2D5BE3] h-2 rounded-full transition-all duration-500"
-                style={{ width: `${pending.length > 0 ? (scoringProgress / pending.length) * 100 : 0}%` }}
-              />
+              <div className="bg-[#2D5BE3] h-2 rounded-full" style={{ width: '100%' }} />
+            </div>
+          </div>
+        )}
+
+        {step === 'result' && currentResult && (
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
+            <div>
+              <h2 className="text-sm font-medium text-gray-500 mb-2">質問</h2>
+              <p className="text-gray-800 text-sm leading-relaxed">{currentResult.question}</p>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">あなたの回答</h3>
+              <div className="bg-blue-50 rounded-2xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
+                {currentResult.answer || '（スキップ）'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 p-4 bg-gray-50 rounded-2xl">
+              {[
+                { label: '正確性', value: currentResult.result.accuracy },
+                { label: '網羅性', value: currentResult.result.completeness },
+                { label: '明瞭性', value: currentResult.result.clarity },
+                { label: '専門用語', value: currentResult.result.terminology },
+              ].map(k => k.value !== undefined && (
+                <div key={k.label} className="text-center">
+                  <div className="text-lg font-bold text-gray-900">{k.value}</div>
+                  <div className="text-xs text-gray-500">{k.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-blue-700">総合評価</p>
+                <span className="text-2xl font-bold text-[#2D5BE3]">{currentResult.result.score}</span>
+              </div>
+              {currentResult.result.feedback && (
+                <p className="text-sm text-blue-800 leading-relaxed">{currentResult.result.feedback}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              {pending.length < MAX_QUESTIONS ? (
+                <button
+                  onClick={handleResultNext}
+                  className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+                >
+                  次の問題へ →
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleResultNext}
+                    className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
+                  >
+                    戻る
+                  </button>
+                  <button
+                    onClick={handleResultFinish}
+                    className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+                  >
+                    完了 →
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
