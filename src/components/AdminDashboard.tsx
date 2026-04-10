@@ -4,10 +4,6 @@ import { useEffect, useRef } from 'react'
 type Stats = {
   total_users:      number
   total_interviews: number
-  pack_users:       number
-  pro_users:        number
-  pack_revenue:     number
-  mrr:              number
   level_dist:       Record<string, number>
   top_roles:        Array<{ role: string; cnt: number }>
   daily_7d:         Array<{ day: string; cnt: number }>
@@ -23,13 +19,6 @@ type DesignStats = {
 
 const LEVEL_COLOR: Record<string, string> = {
   P1: '#FCA5A5', P2: '#FCD34D', P3: '#93C5FD', P4: '#6EE7B7'
-}
-
-const PLAN_LABEL: Record<string, string> = { free: 'Free', pack: 'Pack', pro: 'Pro' }
-const PLAN_COLOR: Record<string, string> = {
-  free: 'text-gray-500 bg-gray-50',
-  pack: 'text-blue-600 bg-blue-50',
-  pro:  'text-yellow-600 bg-yellow-50',
 }
 
 const P_LEVEL_COLOR: Record<string, string> = {
@@ -95,38 +84,18 @@ export default function AdminDashboard({
   }, [stats])
 
   const s = stats
-  const paidUsers  = (s?.pack_users ?? 0) + (s?.pro_users ?? 0)
-  const freeUsers  = (s?.total_users ?? 0) - paidUsers
-  const convRate   = s?.total_users ? (paidUsers / s.total_users * 100).toFixed(1) : '0'
-  const totalRev   = (s?.pack_revenue ?? 0) + (s?.mrr ?? 0)
   const levelTotal = s ? Object.values(s.level_dist).reduce((a, b) => a + b, 0) : 1
 
   return (
     <>
-      {/* KPI 4格 */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* KPI 2格 */}
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: '総ユーザー',  value: s?.total_users      ?? 0 },
           { label: '総面接数',    value: s?.total_interviews  ?? 0 },
-          { label: '有料転換率',  value: `${convRate}%` },
-          { label: '累計収益',    value: `¥${totalRev.toLocaleString()}` },
         ].map(k => (
           <div key={k.label} className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
             <div className="text-2xl font-medium text-gray-900">{k.value}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{k.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* 收入细分 */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Free',                                value: freeUsers,                                     color: 'text-gray-500' },
-          { label: `Pack × ${s?.pack_users ?? 0}`,       value: `¥${(s?.pack_revenue ?? 0).toLocaleString()}`, color: 'text-blue-500' },
-          { label: `Pro MRR × ${s?.pro_users ?? 0}`,     value: `¥${(s?.mrr ?? 0).toLocaleString()}`,          color: 'text-yellow-500' },
-        ].map(k => (
-          <div key={k.label} className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
-            <div className={`text-xl font-medium ${k.color}`}>{k.value}</div>
             <div className="text-xs text-gray-400 mt-0.5">{k.label}</div>
           </div>
         ))}
@@ -210,14 +179,6 @@ export default function AdminDashboard({
                 <span className="text-xs font-mono text-gray-400">{u.user_id.slice(0,8)}…</span>
                 <span className="text-xs text-gray-400 ml-2">
                   {new Date(u.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-gray-400">
-                  {u.interviews_used} / {u.interviews_limit === 9999 ? '∞' : u.interviews_limit} 回
-                </span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${PLAN_COLOR[u.plan] ?? 'text-gray-500 bg-gray-50'}`}>
-                  {PLAN_LABEL[u.plan] ?? u.plan}
                 </span>
               </div>
             </div>
