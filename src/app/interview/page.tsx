@@ -33,7 +33,6 @@ export default function InterviewPage() {
   const [jobRole,       setJobRole]       = useState('')
   const [experience,    setExperience]    = useState('')
   const [lang,          setLang]          = useState<Lang>('zh')
-  const [interviewerEid, setInterviewerEid] = useState('')
   const [intervieweeEid, setIntervieweeEid] = useState('')
   const [question,      setQuestion]      = useState('')
   const [history,       setHistory]       = useState<HistoryItem[]>([])
@@ -76,9 +75,9 @@ export default function InterviewPage() {
     }
   }
 
-  const handleStart = async (role: string, exp: string, l: Lang, ivrEid: string, iveeEid: string) => {
+  const handleStart = async (role: string, exp: string, l: Lang, iveeEid: string) => {
     setJobRole(role); setExperience(exp); setLang(l)
-    setInterviewerEid(ivrEid); setIntervieweeEid(iveeEid)
+    setIntervieweeEid(iveeEid)
     setHistory([]); setPending([])
     await fetchQuestion(role, exp, l, true, 0)
   }
@@ -90,7 +89,7 @@ export default function InterviewPage() {
       const res = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, interviewerEid, intervieweeEid })
+        body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, intervieweeEid })
       })
       const data = await res.json()
       setCurrentResult({ question: q, answer: a, result: data })
@@ -275,7 +274,6 @@ export default function InterviewPage() {
             history={history}
             jobRole={jobRole}
             lang={lang}
-            interviewerEid={interviewerEid}
             intervieweeEid={intervieweeEid}
             onRestart={handleRestart}
           />

@@ -13,12 +13,11 @@ interface Props {
   history: HistoryItem[]
   jobRole: string
   lang: Lang
-  interviewerEid?: string
   intervieweeEid?: string
   onRestart: () => void
 }
 
-export default function SummaryCard({ history, jobRole, lang, interviewerEid, intervieweeEid, onRestart }: Props) {
+export default function SummaryCard({ history, jobRole, lang, intervieweeEid, onRestart }: Props) {
   const printRef = useRef<HTMLDivElement>(null)
 
   const avgScore  = history.reduce((sum, h) => sum + (h.result.score ?? 0), 0) / history.length
@@ -126,7 +125,6 @@ export default function SummaryCard({ history, jobRole, lang, interviewerEid, in
         {/* 基本情報 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 32px', marginBottom: '20px', fontSize: '13px' }}>
           {intervieweeEid && <div><span style={{ color: '#6b7280' }}>Interviewee EID：</span><strong>{intervieweeEid}</strong></div>}
-          {interviewerEid && <div><span style={{ color: '#6b7280' }}>Interviewer EID：</span><strong>{interviewerEid}</strong></div>}
           <div><span style={{ color: '#6b7280' }}>応募職種：</span><strong>{jobRole}</strong></div>
           <div><span style={{ color: '#6b7280' }}>面接言語：</span><strong>{lang === 'ja' ? '日本語' : '中文'}</strong></div>
         </div>
