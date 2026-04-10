@@ -2,12 +2,13 @@
 import { useState } from 'react'
 
 type Props = {
-  sessionId: string | null
+  questionNumber: number
+  questionContent: string
   onSubmit: (feedback: { feedback_text: string; rating: number; feedback_type: string }) => void
   onClose: () => void
 }
 
-export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
+export default function FeedbackModal({ questionNumber, questionContent, onSubmit, onClose }: Props) {
   const [feedbackText, setFeedbackText] = useState('')
   const [rating, setRating] = useState(5)
   const [feedbackType, setFeedbackType] = useState('その他')
@@ -15,7 +16,7 @@ export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
   const [error, setError] = useState('')
 
   const handleSubmit = async () => {
-    if (!sessionId || !feedbackText.trim()) return
+    if (!feedbackText.trim()) return
     setLoading(true)
     setError('')
 
@@ -24,7 +25,8 @@ export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id: sessionId,
+          question_number: questionNumber,
+          question_content: questionContent,
           feedback_text: feedbackText.trim(),
           rating,
           feedback_type: feedbackType,

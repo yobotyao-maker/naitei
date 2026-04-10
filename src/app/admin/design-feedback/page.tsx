@@ -3,18 +3,12 @@ import { useState, useCallback, useEffect } from 'react'
 
 type DesignFeedbackItem = {
   id: string
-  session_id: string
+  question_number: number
+  question_content: string | null
   feedback_text: string
   rating: number
   feedback_type: string
   created_at: string
-  design_sessions: {
-    id: string
-    interviewee_eid: string | null
-    department: string | null
-    p_level: string
-    total_score: number
-  } | null
 }
 
 const FEEDBACK_TYPE_LABEL: Record<string, string> = {
@@ -102,12 +96,7 @@ export default function AdminDesignFeedbackPage() {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    {item.design_sessions?.interviewee_eid && (
-                      <span className="text-xs font-medium text-gray-700">{item.design_sessions.interviewee_eid}</span>
-                    )}
-                    {item.design_sessions?.department && (
-                      <span className="text-xs text-gray-400">{item.design_sessions.department}</span>
-                    )}
+                    <span className="text-xs font-medium text-gray-700">Q{item.question_number}</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                       item.feedback_type === '建議' ? 'bg-blue-50 text-blue-600' :
                       item.feedback_type === '問題' ? 'bg-red-50 text-red-600' :
@@ -135,33 +124,21 @@ export default function AdminDesignFeedbackPage() {
             {expanded === item.id && (
               <div className="bg-gray-50 px-5 py-4 border-t border-gray-100">
                 <div className="space-y-3">
-                  {item.design_sessions && (
-                    <div>
-                      <div className="text-xs font-medium text-gray-600 mb-1">セッション情報</div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        {item.design_sessions.interviewee_eid && (
-                          <div className="bg-white rounded p-2 border border-gray-100">
-                            <div className="text-gray-400">Interviewee EID</div>
-                            <div className="text-gray-700 font-mono">{item.design_sessions.interviewee_eid}</div>
-                          </div>
-                        )}
-                        {item.design_sessions.department && (
-                          <div className="bg-white rounded p-2 border border-gray-100">
-                            <div className="text-gray-400">部署</div>
-                            <div className="text-gray-700">{item.design_sessions.department}</div>
-                          </div>
-                        )}
-                        <div className="bg-white rounded p-2 border border-gray-100">
-                          <div className="text-gray-400">Pレベル</div>
-                          <div className="text-gray-700 font-semibold">{item.design_sessions.p_level}</div>
-                        </div>
-                        <div className="bg-white rounded p-2 border border-gray-100">
-                          <div className="text-gray-400">スコア</div>
-                          <div className="text-gray-700 font-semibold">{item.design_sessions.total_score}/80</div>
-                        </div>
+                  <div>
+                    <div className="text-xs font-medium text-gray-600 mb-1">質問情報</div>
+                    <div className="space-y-2 text-xs">
+                      <div className="bg-white rounded p-2 border border-gray-100">
+                        <div className="text-gray-400">質問番号</div>
+                        <div className="text-gray-700 font-semibold">Q{item.question_number}</div>
                       </div>
+                      {item.question_content && (
+                        <div className="bg-white rounded p-2 border border-gray-100">
+                          <div className="text-gray-400">質問内容</div>
+                          <div className="text-gray-700 line-clamp-3">{item.question_content}</div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   <div>
                     <div className="text-xs font-medium text-gray-600 mb-1">フィードバック情報</div>

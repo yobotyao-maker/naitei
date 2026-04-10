@@ -267,7 +267,7 @@ export default function DesignPage() {
                 {Math.min(currentIdx + 1, questions.length)} / {questions.length} 問
               </span>
             )}
-            {sessionId && step !== 'background' && step !== 'domain' && (
+            {currentQuestion && step !== 'background' && step !== 'domain' && (
               <button
                 onClick={() => setShowFeedback(true)}
                 className="text-sm text-gray-400 hover:text-gray-600 transition-colors px-2 py-1 rounded hover:bg-gray-50"
@@ -367,9 +367,10 @@ export default function DesignPage() {
       </div>
 
       {/* フィードバックモーダル */}
-      {showFeedback && (
+      {showFeedback && currentQuestion && (
         <FeedbackModal
-          sessionId={sessionId}
+          questionNumber={currentQuestion.number}
+          questionContent={currentQuestion.content}
           onSubmit={() => {
             // 送信完了
           }}

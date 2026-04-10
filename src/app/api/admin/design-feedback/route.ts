@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const sp = req.nextUrl.searchParams
-  const sessionId = sp.get('session_id') || null
   const feedbackType = sp.get('feedback_type') || null
   const page = parseInt(sp.get('page') || '0')
   const limit = 50
@@ -19,23 +18,14 @@ export async function GET(req: NextRequest) {
       .from('design_feedback')
       .select(`
         id,
-        session_id,
+        question_number,
+        question_content,
         feedback_text,
         rating,
         feedback_type,
-        created_at,
-        design_sessions (
-          id,
-          interviewee_eid,
-          department,
-          p_level,
-          total_score
-        )
+        created_at
       `, { count: 'exact' })
 
-    if (sessionId) {
-      query = query.eq('session_id', sessionId)
-    }
     if (feedbackType) {
       query = query.eq('feedback_type', feedbackType)
     }
