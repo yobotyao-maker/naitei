@@ -4,20 +4,40 @@ import Logo from '@/components/Logo'
 import Link from 'next/link'
 
 export default function FeedbackPage() {
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [eid, setEid] = useState('')
   const [message, setMessage] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim()) return
+    if (!message.trim() || !email.trim()) return
 
     try {
-      // Send feedback (can be enhanced with actual API)
+      setLoading(true)
+      setError('')
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, eid, message })
+      })
+
+      if (!res.ok) throw new Error('Failed to submit')
+
+      setEmail('')
+      setName('')
+      setEid('')
       setMessage('')
       setSubmitted(true)
       setTimeout(() => setSubmitted(false), 3000)
     } catch (error) {
       console.error('Failed to submit feedback:', error)
+      setError('送信に失敗しました。もう一度試してください。')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -48,7 +68,52 @@ export default function FeedbackPage() {
             </div>
           )}
 
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                メールアドレス <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="example@example.com"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                お名前
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="山田太郎"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                EID
+              </label>
+              <input
+                type="text"
+                value={eid}
+                onChange={e => setEid(e.target.value)}
+                placeholder="E123456"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 font-mono"
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 フィードバック内容 <span className="text-red-400">*</span>
@@ -57,17 +122,17 @@ export default function FeedbackPage() {
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 placeholder="アプリの使いやすさ、機能リクエスト、バグ報告など..."
-                rows={8}
+                rows={6}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 resize-none"
               />
             </div>
 
             <button
               type="submit"
-              disabled={!message.trim()}
+              disabled={!message.trim() || !email.trim() || loading}
               className="w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-3 rounded-2xl transition-colors text-sm"
             >
-              送信
+              {loading ? '送信中...' : '送信'}
             </button>
           </form>
 
