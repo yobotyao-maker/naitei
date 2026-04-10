@@ -12,10 +12,12 @@ export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
   const [rating, setRating] = useState(5)
   const [feedbackType, setFeedbackType] = useState('その他')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async () => {
     if (!sessionId || !feedbackText.trim()) return
     setLoading(true)
+    setError('')
 
     try {
       const res = await fetch('/api/design/feedback', {
@@ -28,12 +30,19 @@ export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
           feedback_type: feedbackType,
         }),
       })
-      if (!res.ok) throw new Error('Feedback submission failed')
+      const data = await res.json()
+      if (!res.ok) {
+        const errorMsg = data.error || 'Feedback submission failed'
+        console.error('API error:', errorMsg)
+        setError(errorMsg)
+        return
+      }
       onSubmit({ feedback_text: feedbackText, rating, feedback_type: feedbackType })
       onClose()
     } catch (e) {
-      console.error(e)
-      alert('フィードバック送信に失敗しました')
+      const errorMsg = e instanceof Error ? e.message : '不明なエラー'
+      console.error('Fetch error:', e)
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -49,6 +58,12 @@ export default function FeedbackModal({ sessionId, onSubmit, onClose }: Props) {
           <h2 className="text-lg font-semibold text-gray-900">フィードバック</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* フィードバック種別 */}
         <div>
