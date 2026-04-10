@@ -12,6 +12,9 @@ import type { Lang } from '@/lib/prompts'
 import { CATEGORY_TO_CHARACTER, type QuestionCategory } from '@/components/manga/manga-design-system'
 import LogoutButton from '@/components/LogoutButton'
 import Logo from '@/components/Logo'
+import { fetchWithRetry } from '@/lib/api-client'
+import { getErrorMessage } from '@/lib/error-messages'
+import { INTERVIEW, UI_DELAYS } from '@/lib/constants'
 
 type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'evaluating' | 'result' | 'summary' | 'upgrade'
 
@@ -22,8 +25,6 @@ const stepIndex: Record<Step, number> = {
   'evaluating': 2, 'result': 2,
   'summary': 3, 'upgrade': 3,
 }
-
-const MAX_QUESTIONS = 30
 
 type PendingItem = { question: string; answer: string }
 type ResultItem = { question: string; answer: string; result: any }
@@ -55,23 +56,30 @@ export default function InterviewPage() {
     setCharacterId(nextChar)
     setStep('loading-q')
     try {
-      const res = await fetch('/api/generate-question', {
+      const res = await fetchWithRetry('/api/generate-question', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobRole: role, experience: exp, lang: l, isFirst, characterId: nextChar })
-      })
+      }, { timeout: UI_DELAYS.LOADING_TIMEOUT })
       const data = await res.json()
       if (res.status === 402) {
         setQuotaInfo({ used: data.used, limit: data.limit })
         setStep('upgrade')
         return
       }
-      if (!res.ok || !data.question) throw new Error(data.error ?? 'Failed to generate question')
+      if (!res.ok || !data.question) {
+        const errorCode = data.error ?? 'UNKNOWN_ERROR'
+        const errorMsg = getErrorMessage(errorCode as any, l)
+        alert(errorMsg.message)
+        throw new Error(errorMsg.message)
+      }
       setQuestion(data.question)
       setStep('answer')
-    } catch {
+    } catch (error) {
       setStep('form')
-      alert('質問の生成に失敗しました。もう一度お試しください。')
+      const errorCode = error instanceof Error ? (error.message.includes('timeout') ? 'CLAUDE_TIMEOUT' : 'UNKNOWN_ERROR') : 'UNKNOWN_ERROR'
+      const errorMsg = getErrorMessage(errorCode as any, l)
+      alert(errorMsg.message)
     }
   }
 
@@ -159,7 +167,7 @@ export default function InterviewPage() {
           <Logo />
           <div className="flex items-center gap-4">
             {step !== 'form' && step !== 'summary' && step !== 'evaluating' && step !== 'result' && (
-              <span className="text-sm text-gray-400">第 {questionCount} 題 / {MAX_QUESTIONS}</span>
+              <span className="text-sm text-gray-400">第 {questionCount} 題 / {INTERVIEW.MAX_QUESTIONS}</span>
             )}
             <LogoutButton />
           </div>
@@ -242,7 +250,7 @@ export default function InterviewPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              {pending.length < MAX_QUESTIONS ? (
+              {pending.length < INTERVIEW.MAX_QUESTIONS ? (
                 <button
                   onClick={handleResultNext}
                   className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"

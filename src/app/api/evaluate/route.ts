@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { buildEvalPrompt } from '@/lib/prompts'
 import { createClient } from '@/lib/supabase-server'
+import { EvaluateRequestSchema } from '@/lib/validation'
+import { createApiResponse, ApiError } from '@/lib/api-errors'
 
 const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
+  const requestId = crypto.randomUUID()
   try {
-    const { jobRole, experience, question, answer, lang, characterId, interviewerEid, intervieweeEid } = await req.json()
+    const body = await req.json()
+
+    // 验证请求
+    const validatedData = EvaluateRequestSchema.parse(body)
+    const { jobRole, experience, question, answer, lang, characterId, interviewerEid, intervieweeEid } = validatedData
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -73,7 +81,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (e) {
-    console.error(e)
-    return NextResponse.json({ error: 'Failed to evaluate' }, { status: 500 })
+    const { status, body } = createApiResponse(e)
+    console.error(`[${requestId}] Evaluation failed:`, {
+      error: e,
+      userId: (await createClient()).auth.getUser().then(d => d.data?.user?.id),
+      status,
+    })
+    return NextResponse.json(body, { status })
   }
 }

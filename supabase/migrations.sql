@@ -249,3 +249,26 @@ ALTER TABLE interviews
   ADD COLUMN IF NOT EXISTS expression_score INTEGER,     -- 表現力スコア
   ADD COLUMN IF NOT EXISTS logic_score INTEGER,          -- 論理力スコア
   ADD COLUMN IF NOT EXISTS japanese_score INTEGER;       -- 日本語スコア
+
+
+-- ────────────────────────────────────────────────────────────
+-- 10. interviews テーブルへのインデックス追加（パフォーマンス最適化）
+-- ────────────────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_interviews_user_id_created
+  ON interviews(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_job_role_created
+  ON interviews(job_role, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_level
+  ON interviews(level) WHERE level IS NOT NULL;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 11. design_sessions テーブルへのインデックス追加
+-- ────────────────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_design_sessions_user_created
+  ON design_sessions(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_design_sessions_p_level
+  ON design_sessions(p_level) WHERE p_level IS NOT NULL;

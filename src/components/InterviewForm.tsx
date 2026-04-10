@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import type { Lang } from '@/lib/prompts'
+import { InterviewFormSchema } from '@/lib/validation'
+import type { ZodError } from 'zod'
 
 const PRESET_ROLES = ['Javaエンジニア', 'フロントエンド', 'インフラ', 'PM', 'データエンジニア']
 const PRESET_EXPS = ['1年未満', '1〜3年', '3〜5年', '5年以上']
@@ -10,6 +12,7 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
   const [exp,           setExp]           = useState('')
   const [lang,          setLang]          = useState<Lang>('zh')
   const [intervieweeEid, setIntervieweeEid] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
@@ -102,12 +105,40 @@ export default function InterviewForm({ onSubmit }: { onSubmit: (role: string, e
         </div>
 
         <button
-          onClick={() => role && intervieweeEid.trim() && onSubmit(role, exp, lang, intervieweeEid.trim())}
+          onClick={() => {
+            try {
+              const result = InterviewFormSchema.parse({
+                jobRole: role,
+                experience: exp,
+                lang,
+                intervieweeEid,
+              })
+              setErrors({})
+              onSubmit(result.jobRole, result.experience, result.lang, result.intervieweeEid)
+            } catch (e) {
+              if (e instanceof Error && 'errors' in e) {
+                const zodError = e as unknown as ZodError
+                const newErrors: Record<string, string> = {}
+                zodError.errors.forEach(err => {
+                  const path = err.path.join('.')
+                  newErrors[path] = err.message
+                })
+                setErrors(newErrors)
+              }
+            }
+          }}
           disabled={!role || !intervieweeEid.trim()}
           className="w-full bg-[#2D5BE3] hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-medium py-4 rounded-2xl transition-colors text-base active:scale-95"
         >
           質問を生成する →
         </button>
+        {Object.keys(errors).length > 0 && (
+          <div className="mt-3 p-3 bg-red-50 rounded-xl border border-red-200">
+            {Object.entries(errors).map(([field, message]) => (
+              <p key={field} className="text-xs text-red-600 mb-1">{message}</p>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
