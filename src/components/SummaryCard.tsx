@@ -2,11 +2,12 @@
 import { useRef } from 'react'
 import type { Lang } from '@/lib/prompts'
 import { levelColor, levelBg } from '@/lib/constants'
+import type { EvaluationResult } from '@/types/evaluation'
 
 export interface HistoryItem {
   question: string
   answer: string
-  result: any
+  result: EvaluationResult
 }
 
 interface Props {

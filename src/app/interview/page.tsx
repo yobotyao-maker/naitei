@@ -15,6 +15,7 @@ import Logo from '@/components/Logo'
 import { fetchWithRetry } from '@/lib/api-client'
 import { getErrorMessage } from '@/lib/error-messages'
 import { INTERVIEW, UI_DELAYS } from '@/lib/constants'
+import type { EvaluationResult } from '@/types/evaluation'
 
 type Step = 'form' | 'loading-q' | 'question' | 'answer' | 'evaluating' | 'result' | 'summary' | 'upgrade'
 
@@ -27,7 +28,7 @@ const stepIndex: Record<Step, number> = {
 }
 
 type PendingItem = { question: string; answer: string }
-type ResultItem = { question: string; answer: string; result: any }
+type ResultItem = { question: string; answer: string; result: EvaluationResult }
 
 export default function InterviewPage() {
   const [step,          setStep]          = useState<Step>('form')

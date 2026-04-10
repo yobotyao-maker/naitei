@@ -82,11 +82,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result)
   } catch (e) {
     const { status, body } = createApiResponse(e)
-    console.error(`[${requestId}] Evaluation failed:`, {
-      error: e,
-      userId: (await createClient()).auth.getUser().then(d => d.data?.user?.id),
+
+    // 获取用户信息用于日志
+    let userId: string | undefined
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id
+    } catch {
+      // 如果获取用户失败，继续记录日志
+    }
+
+    console.error(`[${requestId}] Evaluation request failed`, {
+      error: e instanceof Error ? e.message : String(e),
+      errorType: e instanceof Error ? e.name : typeof e,
+      userId,
       status,
+      timestamp: new Date().toISOString(),
     })
+
     return NextResponse.json(body, { status })
   }
 }
