@@ -10,6 +10,7 @@ import DesignQuestionCard from '@/components/design/DesignQuestionCard'
 import DesignAnswerInput from '@/components/design/DesignAnswerInput'
 import DesignResultCard from '@/components/design/DesignResultCard'
 import DesignSummary from '@/components/design/DesignSummary'
+import FeedbackModal from '@/components/design/FeedbackModal'
 import { calcPLevel } from '@/lib/design-scoring'
 import type { QuestionRow } from '@/lib/design-scoring'
 
@@ -51,6 +52,7 @@ export default function DesignPage() {
   const [currentResult, setCurrentResult] = useState<EvalResult | null>(null)
   const [answers, setAnswers] = useState<AnswerItem[]>([])
   const [overallFeedback, setOverallFeedback] = useState('')
+  const [showFeedback, setShowFeedback] = useState(false)
 
   // ── Step 1 → 2: 背景評価完了 ──────────────────────────────
   const handleBackgroundSubmit = (data: BackgroundData) => {
@@ -241,6 +243,15 @@ export default function DesignPage() {
                 {Math.min(currentIdx + 1, questions.length)} / {questions.length} 問
               </span>
             )}
+            {sessionId && step !== 'background' && step !== 'domain' && (
+              <button
+                onClick={() => setShowFeedback(true)}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors px-2 py-1 rounded hover:bg-gray-50"
+                title="フィードバック"
+              >
+                💬
+              </button>
+            )}
             <LogoutButton />
           </div>
         </div>
@@ -330,6 +341,17 @@ export default function DesignPage() {
           />
         )}
       </div>
+
+      {/* フィードバックモーダル */}
+      {showFeedback && (
+        <FeedbackModal
+          sessionId={sessionId}
+          onSubmit={() => {
+            // 送信完了
+          }}
+          onClose={() => setShowFeedback(false)}
+        />
+      )}
     </main>
   )
 }

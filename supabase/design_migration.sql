@@ -280,3 +280,59 @@ ALTER TABLE design_sessions
 
 ALTER TABLE design_sessions
   ADD COLUMN IF NOT EXISTS interview_date DATE;
+
+-- ────────────────────────────────────────────────────────────
+-- 7. design_feedback テーブル（顧客からのフィードバック）
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS design_feedback (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id      UUID        REFERENCES design_sessions(id) ON DELETE CASCADE,
+  user_id         UUID        REFERENCES auth.users(id),
+  feedback_text   TEXT,                   -- 自由なコメント
+  rating          INTEGER     CHECK (rating >= 1 AND rating <= 5),  -- 1-5 星評価
+  feedback_type   TEXT,                   -- '建議'|'問題'|'表賛'|'その他'
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE design_feedback ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own design feedback" ON design_feedback;
+CREATE POLICY "Users can view own design feedback"
+  ON design_feedback FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM design_sessions
+      WHERE design_sessions.id = design_feedback.session_id
+        AND design_sessions.user_id = auth.uid()
+    )
+    OR auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users)
+  );
+
+DROP POLICY IF EXISTS "Users can insert own design feedback" ON design_feedback;
+CREATE POLICY "Users can insert own design feedback"
+  ON design_feedback FOR INSERT
+  WITH CHECK (
+    user_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM design_sessions
+      WHERE design_sessions.id = design_feedback.session_id
+        AND design_sessions.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Users can update own design feedback" ON design_feedback;
+CREATE POLICY "Users can update own design feedback"
+  ON design_feedback FOR UPDATE
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Admins can view all feedback" ON design_feedback;
+CREATE POLICY "Admins can view all feedback"
+  ON design_feedback FOR SELECT
+  USING (auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users));
+
+DROP POLICY IF EXISTS "Admins can delete feedback" ON design_feedback;
+CREATE POLICY "Admins can delete feedback"
+  ON design_feedback FOR DELETE
+  USING (auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users));
