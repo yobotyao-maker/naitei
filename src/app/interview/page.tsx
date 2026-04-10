@@ -89,7 +89,7 @@ export default function InterviewPage() {
       const res = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobRole, question: q, answer: a, lang, characterId, intervieweeEid })
+        body: JSON.stringify({ jobRole, experience, question: q, answer: a, lang, characterId, intervieweeEid })
       })
       const data = await res.json()
       setCurrentResult({ question: q, answer: a, result: data })

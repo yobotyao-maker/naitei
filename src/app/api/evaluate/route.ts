@@ -7,7 +7,7 @@ const client = new Anthropic()
 
 export async function POST(req: NextRequest) {
   try {
-    const { jobRole, question, answer, lang, characterId, interviewerEid, intervieweeEid } = await req.json()
+    const { jobRole, experience, question, answer, lang, characterId, interviewerEid, intervieweeEid } = await req.json()
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       await supabase.from('interviews').insert({
         user_id: user.id,
         job_role: jobRole,
+        experience,
         question,
         answer,
         score: result.score,
