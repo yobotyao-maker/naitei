@@ -79,7 +79,7 @@ export default function AnswerInput({ question, lang, onNext, onFinish }: {
           <p className="text-xs text-gray-400 mt-3">
             {recording
               ? (lang === 'ja' ? '録音中… もう一度押すと停止' : '录音中… 再按停止')
-              : (lang === 'ja' ? 'ボタンを押して日本語で回答' : '按下按钮用中文回答')}
+              : (lang === 'ja' ? 'ボタンを押して回答を録音' : '按下按钮用中文回答')}
           </p>
           {answer && !recording && (
             <div className="mt-4 w-full bg-blue-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
@@ -96,8 +96,12 @@ export default function AnswerInput({ question, lang, onNext, onFinish }: {
           className="text-xs text-gray-300 hover:text-gray-400 transition-colors w-full text-center"
         >
           {unsupported
-            ? '⚠️ 此浏览器不支持语音，请使用文字输入'
-            : (showText ? '▲ 收起文字输入' : '▼ 文字输入（测试用）')}
+            ? (lang === 'ja'
+              ? '⚠️ このブラウザは音声に対応していません。文字入力をご利用ください。'
+              : '⚠️ 此浏览器不支持语音，请使用文字输入')
+            : (showText
+              ? (lang === 'ja' ? '▲ 文字入力を隠す' : '▲ 收起文字输入')
+              : (lang === 'ja' ? '▼ または文字で入力' : '▼ 文字输入（测试用）'))}
         </button>
         {showText && (
           <div className="mt-3 relative">
@@ -108,7 +112,7 @@ export default function AnswerInput({ question, lang, onNext, onFinish }: {
               maxLength={500}
               placeholder={lang === 'ja'
                 ? 'STAR形式（状況・課題・行動・結果）で回答すると高評価になります'
-                : '建议用 STAR 格式（情景·任务·行动·结果）回答，评分更高'}
+                : 'STAR 格式（情景·任务·行动·结果）回答可获得更高分数'}
               value={answer}
               onChange={e => setAnswer(e.target.value)}
             />

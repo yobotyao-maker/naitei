@@ -78,13 +78,13 @@ export default async function HistoryPage({
     .order('created_at', { ascending: false })
     .limit(20)
 
-  // 计算所有答题的平均分
+  // ── 面接練習の平均スコア計算 ────────────────────────────────
   const allAnswers = interviews?.flatMap(s => s.design_answers ?? []) ?? []
   const interviewAvg = allAnswers.length
     ? (allAnswers.reduce((s, a) => s + (a.ai_score ?? 0), 0) / allAnswers.length).toFixed(1)
     : null
 
-  // 总答题数
+  // ── 総答題数 ──────────────────────────────────────────────
   const totalAnswers = allAnswers.length
 
   const designAvg = designSessions?.length
