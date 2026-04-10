@@ -115,7 +115,7 @@ export default function SummaryCard({ history, jobRole, lang, intervieweeEid, on
         {/* ヘッダー */}
         <div style={{ borderBottom: '2px solid #111827', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>naitei.ai</div>
+            <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '4px' }}>interview</div>
             <div style={{ fontSize: '20px', fontWeight: '700', color: '#111827' }}>AI 面接評価レポート</div>
           </div>
           <div style={{ fontSize: '11px', color: '#6b7280', textAlign: 'right' }}>
@@ -178,7 +178,7 @@ export default function SummaryCard({ history, jobRole, lang, intervieweeEid, on
 
         {/* フッター */}
         <div style={{ marginTop: '24px', paddingTop: '12px', borderTop: '1px solid #e5e7eb', fontSize: '11px', color: '#9ca3af', textAlign: 'center' }}>
-          このレポートは naitei.ai により自動生成されました · {today}
+          このレポートは interview により自動生成されました · {today}
         </div>
       </div>
     </>

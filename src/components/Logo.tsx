@@ -9,7 +9,7 @@ export default function Logo({ size = 'sm', href = '/' }: { size?: 'sm' | 'lg'; 
   if (size === 'lg') {
     return (
       <Link href={href} className="flex flex-col items-center gap-2">
-        <Image src="/logo.svg" alt="naitei.ai" width={72} height={72} priority />
+        <Image src="/logo.svg" alt="interview" width={72} height={72} priority />
       </Link>
     )
   }
@@ -18,7 +18,7 @@ export default function Logo({ size = 'sm', href = '/' }: { size?: 'sm' | 'lg'; 
     <Link href={href} className="flex items-center gap-2">
       <Image src="/logo.svg" alt="" width={28} height={28} priority />
       <span className="font-semibold text-gray-900 text-sm">
-        naitei<span className="text-[#2D5BE3]">.ai</span>
+        interview
       </span>
     </Link>
   )

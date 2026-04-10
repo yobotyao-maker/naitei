@@ -122,7 +122,7 @@ export default function ResultCard({ result, jobRole, lang, questionCount, chara
         </div>
       )}
 
-      <div className="text-center text-xs text-gray-300 mt-4">naitei.ai · AIで内定を掴もう</div>
+      <div className="text-center text-xs text-gray-300 mt-4">interview · AIで内定を掴もう</div>
     </div>
   )
 }

@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
         <div className="text-center mb-8">
           <div className="text-2xl font-medium text-gray-900 mb-1">
-            naitei<span className="text-[#2D5BE3]">.ai</span>
+            interview
           </div>
           <p className="text-sm text-gray-400">新しいパスワードを設定</p>
         </div>

@@ -96,7 +96,7 @@ export default function ReportPage() {
         <div className="avoid-break">
           {/* ヘッダー */}
           <div className="mb-10 pb-6 border-b-2 border-gray-900">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">naitei.ai</div>
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">interview</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-1">設計エンジニア評価レポート</h1>
             <p className="text-sm text-gray-500">Design Engineer Assessment Report</p>
           </div>
@@ -214,7 +214,7 @@ export default function ReportPage() {
 
         {/* フッター */}
         <div className="mt-12 pt-6 border-t border-gray-200 text-xs text-gray-400 text-center">
-          <p>このレポートは naitei.ai により自動生成されました</p>
+          <p>このレポートは interview により自動生成されました</p>
           <p className="mt-1">生成日時: {new Date(s.completed_at).toLocaleString('ja-JP')}</p>
           <p className="mt-1">レポートID: {s.id}</p>
         </div>

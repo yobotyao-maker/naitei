@@ -46,7 +46,7 @@ export function MangaOpening({
         {/* 暗色开场格 */}
         <MangaPanel span="full" style={{ background: '#1A1A2E', minHeight: 90, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#F0C93A', letterSpacing: 1 }}>naitei.</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#F0C93A', letterSpacing: 1 }}>interview</div>
             <div style={{ fontSize: 10, color: '#aaa', marginTop: 3 }}>内定まで、一緒に。</div>
           </div>
           <SFXBackground text="START" color="#fff" />
