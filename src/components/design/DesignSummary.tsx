@@ -1,4 +1,5 @@
 'use client'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { P_LEVEL_LABELS } from '@/lib/design-scoring'
 
@@ -43,9 +44,26 @@ export default function DesignSummary({
   onRestart,
 }: Props) {
   const plInfo = P_LEVEL_LABELS[pLevel] ?? P_LEVEL_LABELS['P1']
+  const printRef = useRef<HTMLDivElement>(null)
+
+  const handlePrint = () => {
+    window.print()
+  }
 
   return (
-    <div className="space-y-5">
+    <>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #design-summary-print, #design-summary-print * { visibility: visible; }
+          #design-summary-print { position: fixed; top: 0; left: 0; width: 100%; height: 100%; padding: 20px; background: white; }
+          .no-print { display: none !important; }
+        }
+        @page { size: A4; margin: 15mm; }
+      `}</style>
+
+      <div id="design-summary-print" ref={printRef} style={{ display: 'block' }}>
+      <div className="space-y-5">
       {/* Pレベルカード */}
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center space-y-3">
         <div className="text-xs text-gray-400 font-medium uppercase tracking-wider">総合判定</div>
@@ -124,7 +142,13 @@ export default function DesignSummary({
       </div>
 
       {/* アクション */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 no-print">
+        <button
+          onClick={handlePrint}
+          className="flex-1 border border-[#2D5BE3] text-[#2D5BE3] hover:bg-blue-50 font-medium py-3 rounded-2xl transition-all text-sm"
+        >
+          📄 PDFを保存
+        </button>
         <button
           onClick={onRestart}
           className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
@@ -138,6 +162,8 @@ export default function DesignSummary({
           面接練習へ
         </Link>
       </div>
-    </div>
+      </div>
+      </div>
+    </>
   )
 }
