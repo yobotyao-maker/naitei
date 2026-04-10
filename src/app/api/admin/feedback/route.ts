@@ -9,36 +9,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const sp = req.nextUrl.searchParams
-  const feedbackType = sp.get('feedback_type') || null
-  const minRating = parseInt(sp.get('min_rating') || '0')
+  const email = sp.get('email') || null
+  const eid = sp.get('eid') || null
   const page = parseInt(sp.get('page') || '0')
-  const limit = 20
+  const limit = 50
 
   try {
     let query = supabase
-      .from('design_feedback')
-      .select(`
-        id,
-        session_id,
-        user_id,
-        feedback_text,
-        rating,
-        feedback_type,
-        created_at,
-        design_sessions (
-          id,
-          interviewer_eid,
-          interviewee_eid,
-          department,
-          p_level
-        )
-      `, { count: 'exact' })
+      .from('feedback')
+      .select('*', { count: 'exact' })
 
-    if (feedbackType) {
-      query = query.eq('feedback_type', feedbackType)
+    // フィルター
+    if (email) {
+      query = query.ilike('email', `%${email}%`)
     }
-    if (minRating > 0) {
-      query = query.gte('rating', minRating)
+    if (eid) {
+      query = query.ilike('eid', `%${eid}%`)
     }
 
     const { data, count, error } = await query
@@ -53,31 +39,8 @@ export async function GET(req: NextRequest) {
       page,
       limit,
     })
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    return NextResponse.json({ error: 'Failed to fetch feedback' }, { status: 500 })
-  }
-}
-
-export async function DELETE(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !await isAdmin(supabase, user.id))
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
-  const { id } = await req.json()
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
-
-  try {
-    const { error } = await supabase
-      .from('design_feedback')
-      .delete()
-      .eq('id', id)
-
-    if (error) throw error
-    return NextResponse.json({ success: true })
-  } catch (e) {
-    console.error(e)
-    return NextResponse.json({ error: 'Failed to delete feedback' }, { status: 500 })
+    return NextResponse.json({ error: e.message }, { status: 500 })
   }
 }
