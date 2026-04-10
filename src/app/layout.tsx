@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'interview · 内定まで、一緒に。',
     description: 'AIがあなたのIT面接力を診断。在日華人向け面接練習。',
-    url: 'https://interview-ai.vercel.app',
+    url: 'https://naitei-ai.vercel.app',
     siteName: 'interview',
     locale: 'ja_JP',
     type: 'website',
