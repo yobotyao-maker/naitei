@@ -14,17 +14,7 @@ export default function DesignResultCard({ question, answer, feedback, current, 
   const isLast = current >= total
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6 relative">
-      {/* 右上角のボタン */}
-      {!isLast && (
-        <button
-          onClick={onNext}
-          className="absolute top-8 right-8 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-all text-sm"
-        >
-          次の問題へ →
-        </button>
-      )}
-
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
       {/* 質問 */}
       <div>
         <h2 className="text-sm font-medium text-gray-500 mb-2">質問</h2>
