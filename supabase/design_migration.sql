@@ -306,7 +306,7 @@ CREATE POLICY "Users can view own design feedback"
       WHERE design_sessions.id = design_feedback.session_id
         AND design_sessions.user_id = auth.uid()
     )
-    OR auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users)
+    OR auth.uid() IN (SELECT DISTINCT user_id FROM admins)
   );
 
 DROP POLICY IF EXISTS "Users can insert own design feedback" ON design_feedback;
@@ -330,9 +330,9 @@ CREATE POLICY "Users can update own design feedback"
 DROP POLICY IF EXISTS "Admins can view all feedback" ON design_feedback;
 CREATE POLICY "Admins can view all feedback"
   ON design_feedback FOR SELECT
-  USING (auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users));
+  USING (auth.uid() IN (SELECT DISTINCT user_id FROM admins));
 
 DROP POLICY IF EXISTS "Admins can delete feedback" ON design_feedback;
 CREATE POLICY "Admins can delete feedback"
   ON design_feedback FOR DELETE
-  USING (auth.uid() IN (SELECT DISTINCT admin_id FROM admin_users));
+  USING (auth.uid() IN (SELECT DISTINCT user_id FROM admins));
