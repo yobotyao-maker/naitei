@@ -25,7 +25,8 @@
       "Bash(netstat -ano)",
       "mcp__ide__getDiagnostics",
       "Bash(taskkill:*)",
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "WebFetch(domain:naitei-ai.vercel.app)"
     ]
   }
 }

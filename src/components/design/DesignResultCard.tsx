@@ -1,25 +1,16 @@
 'use client'
 
-type EvalResult = {
-  score: number
-  accuracy: number
-  completeness: number
-  clarity: number
-  terminology: number
-  feedback: string
-}
-
 type Props = {
   question: { number: number; category: string; content: string }
   answer: string
-  result: EvalResult
+  feedback: string
   current: number
   total: number
   onNext: () => void
   onFinish: () => void
 }
 
-export default function DesignResultCard({ question, answer, result, current, total, onNext, onFinish }: Props) {
+export default function DesignResultCard({ question, answer, feedback, current, total, onNext, onFinish }: Props) {
   const isLast = current >= total
 
   return (
@@ -39,10 +30,10 @@ export default function DesignResultCard({ question, answer, result, current, to
       </div>
 
       {/* AI フィードバック */}
-      {result.feedback && (
+      {feedback && (
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
           <p className="text-xs font-medium text-blue-700 mb-1">AIフィードバック</p>
-          <p className="text-sm text-blue-800 leading-relaxed">{result.feedback}</p>
+          <p className="text-sm text-blue-800 leading-relaxed">{feedback}</p>
         </div>
       )}
 

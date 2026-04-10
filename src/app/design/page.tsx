@@ -53,6 +53,7 @@ export default function DesignPage() {
   const [answers, setAnswers] = useState<AnswerItem[]>([])
   const [overallFeedback, setOverallFeedback] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
+  const [pendingFeedback, setPendingFeedback] = useState<string>('')
 
   // ── Step 1 → 2: 背景評価完了 ──────────────────────────────
   const handleBackgroundSubmit = (data: BackgroundData) => {
@@ -102,7 +103,7 @@ export default function DesignPage() {
   // ── 問題表示 → 回答入力 ─────────────────────────────────────
   const handleQuestionReady = () => setStep('answer')
 
-  // ── 回答送信・AI採点 ─────────────────────────────────────────
+  // ── 回答送信・AI反馈取得 ─────────────────────────────────────────
   const handleAnswer = async (answer: string) => {
     setCurrentAnswer(answer)
     setStep('loading-eval')
@@ -123,7 +124,10 @@ export default function DesignPage() {
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)
+      // 保存完整の評価結果（採点）
       setCurrentResult(result)
+      // フィードバックのみを表示
+      setPendingFeedback(result.feedback || '')
       setStep('result')
     } catch (e) {
       console.error(e)
@@ -137,6 +141,7 @@ export default function DesignPage() {
     const skipped: EvalResult = { score: 0, accuracy: 0, completeness: 0, clarity: 0, terminology: 0, feedback: 'スキップしました' }
     setCurrentAnswer('')
     setCurrentResult(skipped)
+    setPendingFeedback('スキップしました')
     setStep('result')
   }
 
@@ -147,10 +152,11 @@ export default function DesignPage() {
     setCurrentIdx(i => i + 1)
     setCurrentResult(null)
     setCurrentAnswer('')
+    setPendingFeedback('')
     setStep('question')
   }
 
-  // ── 全問完了 → 総合フィードバック生成 ─────────────────────────
+  // ── 全問完了 → 総合フィードバック生成・採点 ─────────────────────────
   const handleFinish = async () => {
     if (!currentResult || !sessionId) return
     const finalAnswers = [...answers, { question: currentQuestion, answer: currentAnswer, result: currentResult }]
@@ -210,6 +216,7 @@ export default function DesignPage() {
     setAnswers([])
     setCurrentResult(null)
     setOverallFeedback('')
+    setPendingFeedback('')
   }
 
   // サマリー用スコア計算
@@ -312,11 +319,11 @@ export default function DesignPage() {
           <LoadingDots label="AIが採点しています..." />
         )}
 
-        {step === 'result' && currentQuestion && currentResult && (
+        {step === 'result' && currentQuestion && pendingFeedback && (
           <DesignResultCard
             question={currentQuestion}
             answer={currentAnswer}
-            result={currentResult}
+            feedback={pendingFeedback}
             current={currentIdx + 1}
             total={questions.length}
             onNext={handleNext}
