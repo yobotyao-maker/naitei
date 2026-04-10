@@ -149,12 +149,14 @@ export default function DesignSessionsSearch() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     {s.interviewee_eid && (
-                      <span className="text-xs font-medium text-gray-700">{s.interviewee_eid}</span>
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded" title="Interviewee EID">{s.interviewee_eid}</span>
+                    )}
+                    {s.interviewer_eid && (
+                      <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded" title="Interviewer EID">👤 {s.interviewer_eid}</span>
                     )}
                     {s.department && (
-                      <span className="text-xs text-gray-400">{s.department}</span>
+                      <span className="text-xs text-gray-600 bg-gray-50 px-2 py-0.5 rounded">{s.department}</span>
                     )}
-                    <span className="text-xs font-mono text-gray-300">{s.user_id.slice(0,8)}…</span>
                   </div>
                   <div className="flex gap-1 flex-wrap">
                     {(s.selected_domains ?? []).slice(0, 3).map((d: string) => (
