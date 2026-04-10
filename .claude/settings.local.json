@@ -26,7 +26,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(taskkill:*)",
       "Bash(npm list:*)",
-      "WebFetch(domain:naitei-ai.vercel.app)"
+      "WebFetch(domain:naitei-ai.vercel.app)",
+      "Read(//tmp/**)"
     ]
   }
 }

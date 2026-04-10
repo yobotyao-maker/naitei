@@ -229,21 +229,21 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
   SELECT json_build_object(
-    'total_sessions',   (SELECT count(*) FROM design_sessions WHERE status = 'completed'),
-    'avg_score',        (SELECT round(avg(total_score)::numeric, 1) FROM design_sessions WHERE status = 'completed'),
+    'total_sessions',   (SELECT count(*) FROM design_sessions),
+    'avg_score',        (SELECT round(avg(total_score)::numeric, 1) FROM design_sessions WHERE total_score > 0),
     'p_level_dist', (
       SELECT json_build_object(
         'P1', count(*) FILTER (WHERE p_level = 'P1'),
         'P2', count(*) FILTER (WHERE p_level = 'P2'),
         'P3', count(*) FILTER (WHERE p_level = 'P3'),
         'P4', count(*) FILTER (WHERE p_level = 'P4')
-      ) FROM design_sessions WHERE status = 'completed'
+      ) FROM design_sessions
     ),
     'top_domains', (
       SELECT json_agg(r) FROM (
         SELECT domain, count(*) AS cnt
         FROM design_sessions, unnest(selected_domains) AS domain
-        WHERE status = 'completed'
+        WHERE array_length(selected_domains, 1) > 0
         GROUP BY domain
         ORDER BY cnt DESC
         LIMIT 5
@@ -255,8 +255,7 @@ AS $$
           to_char(date_trunc('day', created_at), 'MM/DD') AS day,
           count(*) AS cnt
         FROM design_sessions
-        WHERE status = 'completed'
-          AND created_at >= now() - interval '7 days'
+        WHERE created_at >= now() - interval '7 days'
         GROUP BY date_trunc('day', created_at)
         ORDER BY date_trunc('day', created_at)
       ) d
