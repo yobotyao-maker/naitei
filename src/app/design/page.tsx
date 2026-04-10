@@ -247,7 +247,7 @@ export default function DesignPage() {
             <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">設計コース</span>
           </div>
           <div className="flex items-center gap-4">
-            {questions.length > 0 && step !== 'summary' && (
+            {questions.length > 0 && step !== 'summary' && step !== 'result' && (
               <span className="text-sm text-gray-400">
                 {Math.min(currentIdx + 1, questions.length)} / {questions.length} 問
               </span>
