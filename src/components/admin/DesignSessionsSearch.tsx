@@ -32,15 +32,28 @@ export default function DesignSessionsSearch() {
   const [detail, setDetail] = useState<Record<string, any> | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
 
+  // フィルター状態
+  const [eid, setEid] = useState('')
+  const [pLevel, setPLevel] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+
   const load = useCallback(async (p = 0) => {
     setLoading(true)
-    const res  = await fetch(`/api/admin/design-sessions?page=${p}`)
+    const params = new URLSearchParams()
+    if (eid) params.set('eid', eid.trim())
+    if (pLevel) params.set('p_level', pLevel)
+    if (from) params.set('from', from)
+    if (to) params.set('to', to)
+    params.set('page', String(p))
+
+    const res  = await fetch(`/api/admin/design-sessions?${params}`)
     const data = await res.json()
     setRows(data.rows ?? [])
     setTotal(data.total ?? 0)
     setPage(p)
     setLoading(false)
-  }, [])
+  }, [eid, pLevel, from, to])
 
   useEffect(() => { load(0) }, [load])
 
@@ -64,8 +77,53 @@ export default function DesignSessionsSearch() {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      {/* フィルター */}
+      <div className="px-5 py-4 border-b border-gray-50 space-y-3">
+        <div className="flex gap-2 flex-wrap">
+          <input
+            type="text"
+            placeholder="EID 検索"
+            value={eid}
+            onChange={e => setEid(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 font-mono"
+          />
+          <select
+            value={pLevel}
+            onChange={e => setPLevel(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white text-gray-600"
+          >
+            <option value="">全 P レベル</option>
+            <option value="P1">P1</option>
+            <option value="P2">P2</option>
+            <option value="P3">P3</option>
+            <option value="P4">P4</option>
+          </select>
+          <input
+            type="date"
+            value={from}
+            onChange={e => setFrom(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 text-gray-600"
+          />
+          <span className="text-xs text-gray-300">〜</span>
+          <input
+            type="date"
+            value={to}
+            onChange={e => setTo(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 text-gray-600"
+          />
+          <button
+            onClick={() => load(0)}
+            disabled={loading}
+            className="ml-auto bg-[#2D5BE3] hover:bg-blue-700 text-white text-xs font-medium px-5 py-1.5 rounded-lg transition-colors disabled:bg-gray-200"
+          >
+            {loading ? '検索中...' : '検索'}
+          </button>
+        </div>
+      </div>
+
+      {/* ヘッダー */}
       <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">完了セッション一覧</span>
+        <span className="text-sm font-medium text-gray-700">セッション一覧</span>
         <span className="text-xs text-gray-400">
           {total != null ? `${total} 件` : '読み込み中...'}
         </span>
