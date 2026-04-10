@@ -14,7 +14,17 @@ export default function DesignResultCard({ question, answer, feedback, current, 
   const isLast = current >= total
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6">
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6 relative">
+      {/* 右上角のボタン */}
+      {!isLast && (
+        <button
+          onClick={onNext}
+          className="absolute top-8 right-8 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl transition-all text-sm"
+        >
+          次の問題へ →
+        </button>
+      )}
+
       {/* 質問 */}
       <div>
         <h2 className="text-sm font-medium text-gray-500 mb-2">質問</h2>
@@ -39,28 +49,21 @@ export default function DesignResultCard({ question, answer, feedback, current, 
 
       {/* ボタン */}
       <div className="flex gap-3 pt-4">
-        {!isLast ? (
+        {!isLast && (
           <button
             onClick={onNext}
             className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
           >
             次の問題へ →
           </button>
-        ) : (
-          <>
-            <button
-              onClick={onNext}
-              className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
-            >
-              戻る
-            </button>
-            <button
-              onClick={onFinish}
-              className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
-            >
-              完了 →
-            </button>
-          </>
+        )}
+        {isLast && (
+          <button
+            onClick={onFinish}
+            className="flex-1 bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+          >
+            完了 →
+          </button>
         )}
       </div>
     </div>
