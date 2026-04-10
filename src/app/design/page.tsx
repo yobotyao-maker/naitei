@@ -136,10 +136,20 @@ export default function DesignPage() {
     }
   }
 
-  // スキップ（スコア 0）→ 直接進入下一題
+  // スキップ（スコア 0）→ 直接進入下一題 or 完了
   const handleSkip = () => {
+    if (!sessionId) return
     const skipped: EvalResult = { score: 0, accuracy: 0, completeness: 0, clarity: 0, terminology: 0, feedback: 'スキップしました' }
-    setAnswers(prev => [...prev, { question: currentQuestion, answer: '', result: skipped }])
+    const newAnswers = [...answers, { question: currentQuestion, answer: '', result: skipped }]
+
+    // 最後の問題をスキップした場合は、完了処理へ
+    if (currentIdx + 1 >= questions.length) {
+      finishEvaluation(newAnswers)
+      return
+    }
+
+    // 通常は次の問題へ
+    setAnswers(newAnswers)
     setCurrentIdx(i => i + 1)
     setCurrentResult(null)
     setCurrentAnswer('')
@@ -158,10 +168,8 @@ export default function DesignPage() {
     setStep('question')
   }
 
-  // ── 全問完了 → 総合フィードバック生成・採点 ─────────────────────────
-  const handleFinish = async () => {
-    if (!currentResult || !sessionId) return
-    const finalAnswers = [...answers, { question: currentQuestion, answer: currentAnswer, result: currentResult }]
+  // ── 完了処理（finalAnswersを受け取って実行） ─────────────────────────
+  const finishEvaluation = async (finalAnswers: AnswerItem[]) => {
     setAnswers(finalAnswers)
     setStep('loading-summary')
 
@@ -206,6 +214,13 @@ export default function DesignPage() {
       console.error(e)
       setStep('summary')
     }
+  }
+
+  // ── 全問完了 → 総合フィードバック生成・採点 ─────────────────────────
+  const handleFinish = async () => {
+    if (!currentResult || !sessionId) return
+    const finalAnswers = [...answers, { question: currentQuestion, answer: currentAnswer, result: currentResult }]
+    finishEvaluation(finalAnswers)
   }
 
   const handleRestart = () => {
