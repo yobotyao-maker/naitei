@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -13,11 +16,34 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate session_id is a valid UUID
+    if (!UUID_REGEX.test(session_id)) {
+      return NextResponse.json(
+        { error: `Invalid session_id format. Got: ${session_id}` },
+        { status: 400 }
+      )
+    }
+
     // Use service role key for backend operations
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
+
+    // Check if session exists
+    const { data: sessionExists, error: checkError } = await supabase
+      .from('design_sessions')
+      .select('id')
+      .eq('id', session_id)
+      .single()
+
+    if (checkError || !sessionExists) {
+      console.error('Session not found:', session_id)
+      return NextResponse.json(
+        { error: `Design session not found: ${session_id}` },
+        { status: 404 }
+      )
+    }
 
     const { data, error } = await supabase
       .from('design_feedback')
