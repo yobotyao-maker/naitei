@@ -19,11 +19,11 @@ export default function LandingHero() {
       <IntroductionModal isOpen={showIntro} onClose={() => setShowIntro(false)} />
       <div className={`flex flex-col items-center justify-center min-h-screen px-6 text-center transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         {/* Header Buttons */}
-        <div className="fixed top-6 right-6 flex items-center gap-2">
+        <div className="fixed top-6 right-6 flex items-center gap-3">
           {/* Feedback Button */}
           <Link
             href="/feedback"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-blue-50 hover:border-blue-200 text-gray-600 hover:text-blue-600 transition-all text-lg border border-gray-200"
             title="フィードバック"
           >
             💬
@@ -32,7 +32,7 @@ export default function LandingHero() {
           {/* Help Button */}
           <button
             onClick={() => setShowIntro(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition text-sm font-medium"
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-blue-50 hover:border-blue-200 text-gray-600 hover:text-blue-600 transition-all text-lg border border-gray-200"
             title="アプリについて"
           >
             ?
