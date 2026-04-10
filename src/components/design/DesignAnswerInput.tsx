@@ -54,7 +54,7 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
     else { setAnswer(''); r.start(); setRecording(true) }
   }
 
-  const canSubmit = answer.trim().length >= 20 && !recording
+  const canSubmit = answer.trim().length >= 10 && !recording
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-5">
@@ -132,7 +132,7 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
 
       {!canSubmit && answer.length > 0 && !recording && (
         <p className="text-xs text-orange-400">
-          もう少し詳しく回答してください（20字以上）
+          もう少し詳しく回答してください（10字以上）
         </p>
       )}
     </div>
