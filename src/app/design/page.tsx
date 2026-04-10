@@ -336,7 +336,7 @@ export default function DesignPage() {
           <LoadingDots label="AIが採点しています..." />
         )}
 
-        {step === 'result' && currentQuestion && pendingFeedback && (
+        {step === 'result' && currentQuestion && (
           <DesignResultCard
             question={currentQuestion}
             answer={currentAnswer}
