@@ -1,20 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <rect width="200" height="200" rx="40" fill="#1A3A6B"/>
-  <path d="M50 152 L50 48 L68 48 L132 120 L132 48 L152 48 L152 152 L134 152 L70 80 L70 152 Z"
-        fill="none" stroke="#FFFFFF" stroke-width="7"
-        stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- IA letters -->
+  <text x="100" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="80" font-weight="700" fill="#FFFFFF" letter-spacing="2">IA</text>
+  <!-- Decorative AI dot -->
   <circle cx="148" cy="40" r="14" fill="none" stroke="#C9A94E" stroke-width="3"/>
   <circle cx="148" cy="40" r="5.5" fill="#C9A94E"/>
   <line x1="148" y1="20" x2="148" y2="14" stroke="#C9A94E" stroke-width="2.5" stroke-linecap="round"/>
   <line x1="168" y1="40" x2="174" y2="40" stroke="#C9A94E" stroke-width="2.5" stroke-linecap="round"/>
   <line x1="162" y1="26" x2="166" y2="22" stroke="#C9A94E" stroke-width="2.5" stroke-linecap="round"/>
   <line x1="162" y1="54" x2="166" y2="58" stroke="#C9A94E" stroke-width="2.5" stroke-linecap="round"/>
-  <text x="100" y="177" text-anchor="middle"
-        font-family="system-ui, -apple-system, sans-serif"
-        font-size="18" font-weight="500"
-        fill="#E8C97A" letter-spacing="4">naitei</text>
-  <text x="100" y="193" text-anchor="middle"
-        font-family="system-ui, -apple-system, sans-serif"
-        font-size="12" font-weight="400"
-        fill="rgba(232,201,122,0.55)" letter-spacing="6">.ai</text>
+  <!-- Label -->
+  <text x="100" y="177" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#E8C97A" letter-spacing="2">interview</text>
 </svg>
