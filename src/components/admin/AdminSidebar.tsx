@@ -7,11 +7,14 @@ import Image from 'next/image'
 const NAV = [
   { href: '/admin',                 label: 'ダッシュボード',  disabled: false },
   { href: '/admin/users',           label: 'ユーザー管理',    disabled: false },
-  { href: '/admin/interviews',      label: '面接記録',        disabled: false },
   { href: '/admin/design-sessions', label: '設計面接記録',  disabled: false },
   { href: '/admin/feedback',        label: 'フィードバック',  disabled: false },
   { href: '/admin/questions',        label: '問題管理',        disabled: false },
   { href: '/admin/admins',          label: '管理者設定',      disabled: false },
+]
+
+const BOTTOM_NAV = [
+  { href: '/admin/interviews',      label: '面接記録',        disabled: false, gray: true },
 ]
 
 export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
@@ -47,6 +50,39 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
                 active
                   ? 'bg-blue-50 text-[#2D5BE3] font-medium'
                   : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              {n.label}
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* ボトムナビ */}
+      <nav className="px-3 py-4 border-t border-gray-100 space-y-0.5">
+        {BOTTOM_NAV.map(n => {
+          if (n.disabled) {
+            return (
+              <span
+                key={n.href}
+                className="block px-3 py-2 rounded-xl text-sm text-gray-400 cursor-not-allowed opacity-50"
+              >
+                {n.label}
+              </span>
+            )
+          }
+          const active = n.href === '/admin'
+            ? pathname === '/admin'
+            : pathname.startsWith(n.href)
+          const gray = 'gray' in n && n.gray
+          return (
+            <Link
+              key={n.href}
+              href={n.href}
+              className={`block px-3 py-2 rounded-xl text-sm transition-colors ${
+                active
+                  ? gray ? 'bg-gray-50 text-gray-600 font-medium' : 'bg-blue-50 text-[#2D5BE3] font-medium'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
               }`}
             >
               {n.label}
