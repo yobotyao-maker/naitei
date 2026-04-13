@@ -122,8 +122,11 @@ AS $$
             SELECT COALESCE(json_agg(a ORDER BY a.question_number), '[]'::json)
             FROM (
               SELECT a.question_number, a.user_answer, a.ai_score,
-                     a.ai_feedback, a.scoring_detail
+                     a.ai_feedback, a.scoring_detail,
+                     dq.content AS question_content,
+                     dq.category AS question_category
               FROM design_answers a
+              LEFT JOIN design_questions dq ON a.question_id = dq.id
               WHERE a.session_id = s.id
             ) a
           ) AS answers
@@ -206,3 +209,131 @@ GRANT  EXECUTE ON FUNCTION search_interviews TO authenticated;
 ALTER TABLE design_answers
   ADD COLUMN IF NOT EXISTS interviewee_eid TEXT,
   ADD COLUMN IF NOT EXISTS interviewer_eid TEXT;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 9. get_admin_interviewees() — 面試者一覧（管理用）
+--    全採点記録から面試者を集約し、統計情報を付与
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_admin_interviewees(
+  p_eid    text  default null,
+  p_limit  int   default 20,
+  p_offset int   default 0
+)
+RETURNS json
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  WITH unique_eids AS (
+    SELECT DISTINCT i.eid as eid
+    FROM interviews i
+    WHERE i.eid IS NOT NULL
+    UNION
+    SELECT DISTINCT ds.interviewee_eid as eid
+    FROM design_sessions ds
+    WHERE ds.interviewee_eid IS NOT NULL
+  ),
+  filtered_eids AS (
+    SELECT eid FROM unique_eids
+    WHERE (p_eid IS NULL OR eid ILIKE '%' || p_eid || '%')
+    ORDER BY eid
+  )
+  SELECT json_build_object(
+    'total', (SELECT count(*) FROM filtered_eids),
+    'rows', (
+      SELECT json_agg(r) FROM (
+        SELECT
+          e.eid,
+          (SELECT ds.department FROM design_sessions ds
+           WHERE ds.interviewee_eid = e.eid
+           ORDER BY ds.completed_at DESC NULLS LAST
+           LIMIT 1) as department,
+          COALESCE(ROUND(AVG(i.score)::numeric, 1), 0) as comprehensive_rating,
+          COUNT(DISTINCT i.id) as total_interviews,
+          MAX(i.created_at) as latest_interview_date,
+          COUNT(*) FILTER (WHERE i.level = 'S1') as s1_count,
+          COUNT(*) FILTER (WHERE i.level = 'S2') as s2_count,
+          COUNT(*) FILTER (WHERE i.level = 'S3') as s3_count,
+          COUNT(*) FILTER (WHERE i.level = 'S4') as s4_count,
+          COALESCE(ROUND(AVG(i.technical_score)::numeric, 1), 0) as avg_technical_score,
+          COALESCE(ROUND(AVG(i.expression_score)::numeric, 1), 0) as avg_expression_score,
+          COALESCE(ROUND(AVG(i.logic_score)::numeric, 1), 0) as avg_logic_score,
+          COALESCE(ROUND(AVG(i.japanese_score)::numeric, 1), 0) as avg_japanese_score
+        FROM filtered_eids e
+        LEFT JOIN interviews i ON i.eid = e.eid
+        GROUP BY e.eid
+        ORDER BY e.eid
+        LIMIT p_limit
+        OFFSET p_offset
+      ) r
+    )
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION get_admin_interviewees FROM anon;
+GRANT  EXECUTE ON FUNCTION get_admin_interviewees TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 10. get_admin_interviewee_detail() — 面試者詳細情報（管理用）
+--     特定の面試者の採点履歴と設計セッション履歴
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_admin_interviewee_detail(p_eid text)
+RETURNS json
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT json_build_object(
+    'interviewee',
+      (SELECT json_build_object(
+        'eid', p_eid,
+        'department', (
+          SELECT ds.department FROM design_sessions ds
+          WHERE ds.interviewee_eid = p_eid
+          ORDER BY ds.completed_at DESC NULLS LAST
+          LIMIT 1
+        ),
+        'comprehensive_rating', COALESCE(ROUND(AVG(i.score)::numeric, 1), 0),
+        'total_interviews', COUNT(DISTINCT i.id),
+        'latest_interview_date', MAX(i.created_at),
+        's1_count', COUNT(*) FILTER (WHERE i.level = 'S1'),
+        's2_count', COUNT(*) FILTER (WHERE i.level = 'S2'),
+        's3_count', COUNT(*) FILTER (WHERE i.level = 'S3'),
+        's4_count', COUNT(*) FILTER (WHERE i.level = 'S4'),
+        'avg_technical_score', COALESCE(ROUND(AVG(i.technical_score)::numeric, 1), 0),
+        'avg_expression_score', COALESCE(ROUND(AVG(i.expression_score)::numeric, 1), 0),
+        'avg_logic_score', COALESCE(ROUND(AVG(i.logic_score)::numeric, 1), 0),
+        'avg_japanese_score', COALESCE(ROUND(AVG(i.japanese_score)::numeric, 1), 0)
+      )
+      FROM interviews i
+      WHERE i.eid = p_eid),
+    'interviews', (
+      SELECT COALESCE(json_agg(r ORDER BY r.created_at DESC), '[]'::json)
+      FROM (
+        SELECT id, job_role, score, level, feedback, lang,
+               technical_score, expression_score, logic_score, japanese_score,
+               question, answer, created_at
+        FROM interviews
+        WHERE eid = p_eid
+        ORDER BY created_at DESC
+        LIMIT 50
+      ) r
+    ),
+    'design_sessions', (
+      SELECT COALESCE(json_agg(r ORDER BY r.completed_at DESC), '[]'::json)
+      FROM (
+        SELECT
+          s.id, s.interview_date, s.interviewer_eid, s.department,
+          s.selected_domains, s.background_score, s.technical_score, s.total_score, s.p_level,
+          s.overall_feedback, s.completed_at
+        FROM design_sessions s
+        WHERE s.interviewee_eid = p_eid AND s.status = 'completed'
+        ORDER BY s.completed_at DESC
+        LIMIT 20
+      ) r
+    )
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION get_admin_interviewee_detail FROM anon;
+GRANT  EXECUTE ON FUNCTION get_admin_interviewee_detail TO authenticated;

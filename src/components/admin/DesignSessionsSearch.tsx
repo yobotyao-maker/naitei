@@ -244,14 +244,40 @@ export default function DesignSessionsSearch() {
                     )}
 
                     {/* 総合フィードバック */}
-                    {detail?.overall_feedback && (
-                      <div>
-                        <div className="text-xs font-medium text-gray-600 mb-1">総合フィードバック</div>
-                        <p className="text-xs text-gray-600 bg-white rounded-xl p-3 border border-gray-100 whitespace-pre-wrap">
-                          {detail.overall_feedback}
-                        </p>
+                    <div>
+                      <div className="text-xs font-medium text-gray-600 mb-2">総合フィードバック & スコア分析</div>
+                      <div className="space-y-3">
+                        {/* スコア分析サマリー */}
+                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600">背景スコア</div>
+                              <div className="text-2xl font-bold text-blue-600 mt-1">{s.background_score}</div>
+                            </div>
+                            <div className="text-center border-l border-r border-blue-300">
+                              <div className="text-sm font-medium text-gray-600">技術スコア</div>
+                              <div className="text-2xl font-bold text-green-600 mt-1">{s.technical_score}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-sm font-medium text-gray-600">合計スコア</div>
+                              <div className="text-2xl font-bold text-purple-600 mt-1">{s.total_score}</div>
+                            </div>
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-blue-300 text-center">
+                            <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${P_LEVEL_COLOR[s.p_level] ?? 'text-gray-500 bg-gray-50'}`}>
+                              {s.p_level}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 総合フィードバック */}
+                        {detail?.overall_feedback && (
+                          <p className="text-xs text-gray-700 bg-white rounded-xl p-4 border border-gray-100 whitespace-pre-wrap leading-relaxed">
+                            {detail.overall_feedback}
+                          </p>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -284,65 +310,113 @@ export default function DesignSessionsSearch() {
       {/* 詳細モーダル */}
       {selectedAnswer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-96 overflow-y-auto shadow-lg">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-900">Q{selectedAnswer.question_number} 詳細</h3>
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+            {/* ヘッダー */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Q{selectedAnswer.question_number} 詳細分析</h3>
+                {selectedAnswer.question_category && (
+                  <p className="text-xs text-gray-500 mt-1">{selectedAnswer.question_category}</p>
+                )}
+              </div>
               <button
                 onClick={() => setSelectedAnswer(null)}
-                className="text-gray-400 hover:text-gray-600 text-lg"
+                className="text-gray-400 hover:text-gray-600 text-2xl font-light"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-6">
+              {/* スコアサマリー */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-blue-600 mb-1 uppercase tracking-wide">総合スコア</p>
+                    <p className="text-4xl font-bold text-blue-600">{selectedAnswer.ai_score}</p>
+                    <p className="text-xs text-blue-500 mt-1">/5 点</p>
+                  </div>
+                  <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center border-4 border-blue-200">
+                    <span className="text-center">
+                      <div className="text-3xl font-bold text-blue-600">{Math.round((selectedAnswer.ai_score / 5) * 100)}</div>
+                      <div className="text-xs text-gray-400">%</div>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* 質問 */}
               <div>
-                <div className="text-xs font-medium text-gray-500 mb-1">質問</div>
-                <p className="text-sm text-gray-800">{selectedAnswer.question_content || selectedAnswer.user_answer}</p>
+                <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">質問</div>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <p className="text-sm text-gray-800 leading-relaxed">{selectedAnswer.question_content || '質問内容なし'}</p>
+                </div>
               </div>
 
-              {/* スコア */}
-              <div>
-                <div className="text-xs font-medium text-gray-500 mb-2">スコア</div>
-                <div className="text-2xl font-bold text-blue-600">{selectedAnswer.ai_score}/5</div>
-              </div>
-
-              {/* 4維度評分 */}
+              {/* 評価詳細（4次元） */}
               {selectedAnswer.scoring_detail && (
                 <div>
-                  <div className="text-xs font-medium text-gray-500 mb-2">評価詳細</div>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wide">評価詳細</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                      { label: '正確性', value: selectedAnswer.scoring_detail.accuracy },
-                      { label: '網羅性', value: selectedAnswer.scoring_detail.completeness },
-                      { label: '明瞭性', value: selectedAnswer.scoring_detail.clarity },
-                      { label: '専門用語', value: selectedAnswer.scoring_detail.terminology },
-                    ].map(k => (
-                      <div key={k.label} className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-lg font-bold text-gray-900">{k.value}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{k.label}</div>
-                      </div>
-                    ))}
+                      { label: '正確性', key: 'accuracy', color: 'blue' },
+                      { label: '網羅性', key: 'completeness', color: 'green' },
+                      { label: '明瞭性', key: 'clarity', color: 'purple' },
+                      { label: '専門用語', key: 'terminology', color: 'orange' },
+                    ].map(({ label, key, color }) => {
+                      const value = selectedAnswer.scoring_detail[key] || 0
+                      const percent = (value / 5) * 100
+                      const colorClasses = {
+                        blue: 'bg-blue-50 border-blue-200 text-blue-600',
+                        green: 'bg-green-50 border-green-200 text-green-600',
+                        purple: 'bg-purple-50 border-purple-200 text-purple-600',
+                        orange: 'bg-orange-50 border-orange-200 text-orange-600',
+                      }
+                      const progressColor = {
+                        blue: 'bg-blue-500',
+                        green: 'bg-green-500',
+                        purple: 'bg-purple-500',
+                        orange: 'bg-orange-500',
+                      }
+
+                      return (
+                        <div key={key} className={`rounded-xl p-4 border ${colorClasses[color as keyof typeof colorClasses]}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold">{label}</span>
+                            <span className="text-lg font-bold">{value}/5</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all ${progressColor[color as keyof typeof progressColor]}`}
+                              style={{ width: `${percent}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* 回答 */}
+              {/* ユーザー回答 */}
               <div>
-                <div className="text-xs font-medium text-gray-500 mb-1">ユーザー回答</div>
-                <p className="text-sm text-gray-700 bg-blue-50 rounded-lg p-3 leading-relaxed whitespace-pre-wrap">
-                  {selectedAnswer.user_answer || '（回答なし）'}
-                </p>
+                <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">ユーザー回答</div>
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                  <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                    {selectedAnswer.user_answer || '（回答なし）'}
+                  </p>
+                </div>
               </div>
 
-              {/* フィードバック */}
+              {/* AIフィードバック */}
               {selectedAnswer.ai_feedback && (
                 <div>
-                  <div className="text-xs font-medium text-gray-500 mb-1">AIフィードバック</div>
-                  <p className="text-sm text-gray-700 bg-amber-50 rounded-lg p-3 leading-relaxed whitespace-pre-wrap">
-                    {selectedAnswer.ai_feedback}
-                  </p>
+                  <div className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">AIフィードバック</div>
+                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                    <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                      {selectedAnswer.ai_feedback}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
