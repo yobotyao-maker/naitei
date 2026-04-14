@@ -249,18 +249,19 @@ AS $$
            ORDER BY ds.completed_at DESC NULLS LAST
            LIMIT 1) as department,
           COALESCE(ROUND(AVG(i.score)::numeric, 1), 0) as comprehensive_rating,
-          COUNT(DISTINCT i.id) as total_interviews,
-          MAX(i.created_at) as latest_interview_date,
-          COUNT(*) FILTER (WHERE i.level = 'S1') as s1_count,
-          COUNT(*) FILTER (WHERE i.level = 'S2') as s2_count,
-          COUNT(*) FILTER (WHERE i.level = 'S3') as s3_count,
-          COUNT(*) FILTER (WHERE i.level = 'S4') as s4_count,
+          COUNT(DISTINCT COALESCE(i.id, ds.id)) as total_interviews,
+          GREATEST(MAX(i.created_at), MAX(ds.completed_at)) as latest_interview_date,
+          COUNT(*) FILTER (WHERE ds.p_level = 'P1') as p1_count,
+          COUNT(*) FILTER (WHERE ds.p_level = 'P2') as p2_count,
+          COUNT(*) FILTER (WHERE ds.p_level = 'P3') as p3_count,
+          COUNT(*) FILTER (WHERE ds.p_level = 'P4') as p4_count,
           COALESCE(ROUND(AVG(i.technical_score)::numeric, 1), 0) as avg_technical_score,
           COALESCE(ROUND(AVG(i.expression_score)::numeric, 1), 0) as avg_expression_score,
           COALESCE(ROUND(AVG(i.logic_score)::numeric, 1), 0) as avg_logic_score,
           COALESCE(ROUND(AVG(i.japanese_score)::numeric, 1), 0) as avg_japanese_score
         FROM filtered_eids e
         LEFT JOIN interviews i ON i.eid = e.eid
+        LEFT JOIN design_sessions ds ON ds.interviewee_eid = e.eid
         GROUP BY e.eid
         ORDER BY e.eid
         LIMIT p_limit

@@ -7,6 +7,7 @@ import Image from 'next/image'
 const NAV = [
   { href: '/admin',                 label: 'ダッシュボード',  disabled: false },
   { href: '/admin/users',           label: 'ユーザー管理',    disabled: false },
+  { href: '/admin/interviewees',    label: '面試者管理',      disabled: false },
   { href: '/admin/design-sessions', label: '設計面接記録',  disabled: false },
   { href: '/admin/design-feedback', label: '設計フィードバック', disabled: false },
   { href: '/admin/feedback',        label: 'フィードバック',  disabled: false },
