@@ -105,6 +105,11 @@ export type QuestionRow = {
   is_required: boolean
   display_order: string | null
   design_domains: string[]
+  hints?: {
+    template?: string[]
+    tips?: string[]
+    keywords?: string[]
+  }
 }
 
 export function selectQuestions(

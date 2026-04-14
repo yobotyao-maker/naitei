@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
+import Link from 'next/link'
 
 type Row = {
   eid: string
@@ -19,6 +20,12 @@ type Row = {
 
 export default function IntervieweeManager() {
   const [eid,           setEid]           = useState('')
+  const [department,    setDepartment]    = useState('')
+  const [ratingMin,     setRatingMin]     = useState('')
+  const [ratingMax,     setRatingMax]     = useState('')
+  const [interviewMin,  setInterviewMin]  = useState('')
+  const [interviewMax,  setInterviewMax]  = useState('')
+  const [showFilters,   setShowFilters]   = useState(false)
   const [page,          setPage]          = useState(0)
   const [rows,          setRows]          = useState<Row[]>([])
   const [total,         setTotal]         = useState<number | null>(null)
@@ -27,11 +34,17 @@ export default function IntervieweeManager() {
   const [editDept,      setEditDept]      = useState('')
   const [editLoading,   setEditLoading]   = useState(false)
   const [editError,     setEditError]     = useState('')
+  const [departments,   setDepartments]   = useState<string[]>([])
 
   const search = useCallback(async (p = 0) => {
     setLoading(true)
     const params = new URLSearchParams()
     if (eid) params.set('eid', eid.trim())
+    if (department) params.set('department', department)
+    if (ratingMin) params.set('rating_min', ratingMin)
+    if (ratingMax) params.set('rating_max', ratingMax)
+    if (interviewMin) params.set('interview_min', interviewMin)
+    if (interviewMax) params.set('interview_max', interviewMax)
     params.set('page', String(p))
 
     const res  = await fetch(`/api/admin/interviewees?${params}`)
@@ -40,7 +53,21 @@ export default function IntervieweeManager() {
     setTotal(data.total ?? 0)
     setPage(p)
     setLoading(false)
-  }, [eid])
+  }, [eid, department, ratingMin, ratingMax, interviewMin, interviewMax])
+
+  const handleClearFilters = () => {
+    setEid('')
+    setDepartment('')
+    setRatingMin('')
+    setRatingMax('')
+    setInterviewMin('')
+    setInterviewMax('')
+    setPage(0)
+  }
+
+  const activeFilters = [
+    eid, department, ratingMin, ratingMax, interviewMin, interviewMax
+  ].filter(Boolean).length
 
   const handleEdit = (row: Row) => {
     setEditingRow(row)
@@ -83,7 +110,18 @@ export default function IntervieweeManager() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <div className="space-y-4">
+      {/* ダッシュボードリンク */}
+      <div className="flex justify-end">
+        <Link
+          href="/admin/interviewees/dashboard"
+          className="text-sm font-medium text-blue-500 hover:text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
+        >
+          📊 ダッシュボード
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       {/* 検索バー */}
       <div className="p-5 border-b border-gray-50 space-y-3">
         <div className="flex gap-2">
@@ -101,7 +139,110 @@ export default function IntervieweeManager() {
           >
             {loading ? '検索中...' : '検索'}
           </button>
+          <button
+            onClick={async () => {
+              const params = new URLSearchParams()
+              if (eid) params.set('eid', eid.trim())
+              if (department) params.set('department', department)
+              if (ratingMin) params.set('rating_min', ratingMin)
+              if (ratingMax) params.set('rating_max', ratingMax)
+              if (interviewMin) params.set('interview_min', interviewMin)
+              if (interviewMax) params.set('interview_max', interviewMax)
+              const url = `/api/admin/interviewees/export?${params}`
+              const a = document.createElement('a')
+              a.href = url
+              a.click()
+            }}
+            className="text-sm font-medium px-4 py-2.5 rounded-xl transition-colors shrink-0 border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            📥 CSV
+          </button>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`text-sm font-medium px-4 py-2.5 rounded-xl transition-colors shrink-0 ${
+              showFilters
+                ? 'bg-blue-50 text-[#2D5BE3] border border-blue-200'
+                : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            🔽 フィルタ {activeFilters > 0 && `(${activeFilters})`}
+          </button>
         </div>
+
+        {/* フィルターパネル */}
+        {showFilters && (
+          <div className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-100">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">部門</label>
+                <input
+                  type="text"
+                  placeholder="部門名"
+                  value={department}
+                  onChange={e => setDepartment(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">評級（最小）</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={ratingMin}
+                  onChange={e => setRatingMin(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">評級（最大）</label>
+                <input
+                  type="number"
+                  placeholder="10"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={ratingMax}
+                  onChange={e => setRatingMax(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">採訪数（最小）</label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  min="0"
+                  value={interviewMin}
+                  onChange={e => setInterviewMin(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1">採訪数（最大）</label>
+                <input
+                  type="number"
+                  placeholder="100"
+                  min="0"
+                  value={interviewMax}
+                  onChange={e => setInterviewMax(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleClearFilters}
+                className="text-xs text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              >
+                クリア
+              </button>
+            </div>
+          </div>
+        )}
+
         {total != null && (
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-400">{total} 件</span>
@@ -150,7 +291,13 @@ export default function IntervieweeManager() {
                   <td className="px-5 py-3 text-center text-xs text-gray-600 font-mono">
                     {r.avg_technical_score.toFixed(1)}/{r.avg_expression_score.toFixed(1)}/{r.avg_logic_score.toFixed(1)}/{r.avg_japanese_score.toFixed(1)}
                   </td>
-                  <td className="px-5 py-3 text-center">
+                  <td className="px-5 py-3 text-center space-x-1 flex justify-center">
+                    <Link
+                      href={`/admin/interviewees/${r.eid}`}
+                      className="text-xs text-green-500 hover:text-green-700 px-2 py-1 rounded-lg border border-green-200 hover:border-green-400 transition-colors"
+                    >
+                      詳細
+                    </Link>
                     <button
                       onClick={() => handleEdit(r)}
                       className="text-xs text-blue-500 hover:text-blue-700 px-2 py-1 rounded-lg border border-blue-200 hover:border-blue-400 transition-colors"
@@ -224,6 +371,7 @@ export default function IntervieweeManager() {
           </div>
         </div>
       )}
+    </div>
     </div>
   )
 }

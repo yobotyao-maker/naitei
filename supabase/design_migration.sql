@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS design_questions (
   is_required    BOOLEAN     DEFAULT false,
   display_order  TEXT,       -- '進め'|'任意'|'必須'
   design_domains TEXT[]      DEFAULT '{}',
+  hints          JSONB       DEFAULT '{"template": [], "tips": [], "keywords": []}',
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 

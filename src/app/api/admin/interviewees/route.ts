@@ -10,15 +10,25 @@ export async function GET(req: NextRequest) {
 
   const sp    = req.nextUrl.searchParams
   const eid   = sp.get('eid')   || null
+  const department = sp.get('department') || null
+  const ratingMin = sp.get('rating_min') ? parseFloat(sp.get('rating_min')!) : null
+  const ratingMax = sp.get('rating_max') ? parseFloat(sp.get('rating_max')!) : null
+  const interviewMin = sp.get('interview_min') ? parseInt(sp.get('interview_min')!) : null
+  const interviewMax = sp.get('interview_max') ? parseInt(sp.get('interview_max')!) : null
   const page  = parseInt(sp.get('page') || '0')
   const limit = 20
 
   try {
     const offset = page * limit
     const { data, error } = await supabase.rpc('get_admin_interviewees', {
-      p_eid:    eid,
-      p_limit:  limit,
-      p_offset: offset,
+      p_eid:            eid,
+      p_department:     department,
+      p_rating_min:     ratingMin,
+      p_rating_max:     ratingMax,
+      p_interview_min:  interviewMin,
+      p_interview_max:  interviewMax,
+      p_limit:          limit,
+      p_offset:         offset,
     })
 
     if (error) throw error

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import HintsTooltip from './HintsTooltip'
 
 declare global {
   interface Window {
@@ -8,8 +9,14 @@ declare global {
   }
 }
 
+type Hints = {
+  template?: string[]
+  tips?: string[]
+  keywords?: string[]
+}
+
 type Props = {
-  question: { content: string }
+  question: { content: string; hints?: Hints }
   onSubmit: (answer: string) => void
   onSkip: () => void
 }
@@ -59,7 +66,10 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-5">
       <div>
-        <h2 className="text-sm font-medium text-gray-500 mb-2">質問</h2>
+        <div className="flex items-start justify-between mb-2">
+          <h2 className="text-sm font-medium text-gray-500">質問</h2>
+          <HintsTooltip hints={question.hints} />
+        </div>
         <p className="text-gray-800 text-sm leading-relaxed">{question.content}</p>
       </div>
 

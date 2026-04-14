@@ -212,13 +212,25 @@ ALTER TABLE design_answers
 
 
 -- ────────────────────────────────────────────────────────────
--- 9. get_admin_interviewees() — 面試者一覧（管理用）
+-- 9. design_questions に hints カラム追加（回答テンプレート・ヒント）
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE design_questions
+  ADD COLUMN IF NOT EXISTS hints JSONB DEFAULT '{"template": [], "tips": [], "keywords": []}';
+
+
+-- ────────────────────────────────────────────────────────────
+-- 10. get_admin_interviewees() — 面試者一覧（管理用）
 --    全採点記録から面試者を集約し、統計情報を付与
 -- ────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION get_admin_interviewees(
-  p_eid    text  default null,
-  p_limit  int   default 20,
-  p_offset int   default 0
+  p_eid             text    default null,
+  p_department      text    default null,
+  p_rating_min      numeric default null,
+  p_rating_max      numeric default null,
+  p_interview_min   int     default null,
+  p_interview_max   int     default null,
+  p_limit           int     default 20,
+  p_offset          int     default 0
 )
 RETURNS json
 LANGUAGE sql
@@ -233,37 +245,44 @@ AS $$
     FROM design_sessions ds
     WHERE ds.interviewee_eid IS NOT NULL
   ),
-  filtered_eids AS (
-    SELECT eid FROM unique_eids
+  interviewee_data AS (
+    SELECT
+      e.eid,
+      (SELECT ds.department FROM design_sessions ds
+       WHERE ds.interviewee_eid = e.eid
+       ORDER BY ds.completed_at DESC NULLS LAST
+       LIMIT 1) as department,
+      COALESCE(ROUND(AVG(i.score)::numeric, 1), 0) as comprehensive_rating,
+      COUNT(DISTINCT COALESCE(i.id, ds.id)) as total_interviews,
+      GREATEST(MAX(i.created_at), MAX(ds.completed_at)) as latest_interview_date,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P1') as p1_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P2') as p2_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P3') as p3_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P4') as p4_count,
+      COALESCE(ROUND(AVG(i.technical_score)::numeric, 1), 0) as avg_technical_score,
+      COALESCE(ROUND(AVG(i.expression_score)::numeric, 1), 0) as avg_expression_score,
+      COALESCE(ROUND(AVG(i.logic_score)::numeric, 1), 0) as avg_logic_score,
+      COALESCE(ROUND(AVG(i.japanese_score)::numeric, 1), 0) as avg_japanese_score
+    FROM unique_eids e
+    LEFT JOIN interviews i ON i.eid = e.eid
+    LEFT JOIN design_sessions ds ON ds.interviewee_eid = e.eid
+    GROUP BY e.eid
+  ),
+  filtered_data AS (
+    SELECT * FROM interviewee_data
     WHERE (p_eid IS NULL OR eid ILIKE '%' || p_eid || '%')
+      AND (p_department IS NULL OR department = p_department)
+      AND (p_rating_min IS NULL OR comprehensive_rating >= p_rating_min)
+      AND (p_rating_max IS NULL OR comprehensive_rating <= p_rating_max)
+      AND (p_interview_min IS NULL OR total_interviews >= p_interview_min)
+      AND (p_interview_max IS NULL OR total_interviews <= p_interview_max)
     ORDER BY eid
   )
   SELECT json_build_object(
-    'total', (SELECT count(*) FROM filtered_eids),
+    'total', (SELECT count(*) FROM filtered_data),
     'rows', (
       SELECT json_agg(r) FROM (
-        SELECT
-          e.eid,
-          (SELECT ds.department FROM design_sessions ds
-           WHERE ds.interviewee_eid = e.eid
-           ORDER BY ds.completed_at DESC NULLS LAST
-           LIMIT 1) as department,
-          COALESCE(ROUND(AVG(i.score)::numeric, 1), 0) as comprehensive_rating,
-          COUNT(DISTINCT COALESCE(i.id, ds.id)) as total_interviews,
-          GREATEST(MAX(i.created_at), MAX(ds.completed_at)) as latest_interview_date,
-          COUNT(*) FILTER (WHERE ds.p_level = 'P1') as p1_count,
-          COUNT(*) FILTER (WHERE ds.p_level = 'P2') as p2_count,
-          COUNT(*) FILTER (WHERE ds.p_level = 'P3') as p3_count,
-          COUNT(*) FILTER (WHERE ds.p_level = 'P4') as p4_count,
-          COALESCE(ROUND(AVG(i.technical_score)::numeric, 1), 0) as avg_technical_score,
-          COALESCE(ROUND(AVG(i.expression_score)::numeric, 1), 0) as avg_expression_score,
-          COALESCE(ROUND(AVG(i.logic_score)::numeric, 1), 0) as avg_logic_score,
-          COALESCE(ROUND(AVG(i.japanese_score)::numeric, 1), 0) as avg_japanese_score
-        FROM filtered_eids e
-        LEFT JOIN interviews i ON i.eid = e.eid
-        LEFT JOIN design_sessions ds ON ds.interviewee_eid = e.eid
-        GROUP BY e.eid
-        ORDER BY e.eid
+        SELECT * FROM filtered_data
         LIMIT p_limit
         OFFSET p_offset
       ) r
@@ -338,3 +357,86 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION get_admin_interviewee_detail FROM anon;
 GRANT  EXECUTE ON FUNCTION get_admin_interviewee_detail TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────
+-- 11. get_admin_interviewees_stats() — 面試者統計ダッシュボード（管理用）
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION get_admin_interviewees_stats()
+RETURNS json
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  WITH unique_eids AS (
+    SELECT DISTINCT i.eid as eid
+    FROM interviews i
+    WHERE i.eid IS NOT NULL
+    UNION
+    SELECT DISTINCT ds.interviewee_eid as eid
+    FROM design_sessions ds
+    WHERE ds.interviewee_eid IS NOT NULL
+  ),
+  interviewee_data AS (
+    SELECT
+      e.eid,
+      (SELECT ds.department FROM design_sessions ds
+       WHERE ds.interviewee_eid = e.eid
+       ORDER BY ds.completed_at DESC NULLS LAST
+       LIMIT 1) as department,
+      COALESCE(ROUND(AVG(i.score)::numeric, 1), 0) as comprehensive_rating,
+      COUNT(DISTINCT COALESCE(i.id, ds.id)) as total_interviews,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P1') as p1_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P2') as p2_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P3') as p3_count,
+      COUNT(*) FILTER (WHERE ds.p_level = 'P4') as p4_count
+    FROM unique_eids e
+    LEFT JOIN interviews i ON i.eid = e.eid
+    LEFT JOIN design_sessions ds ON ds.interviewee_eid = e.eid
+    GROUP BY e.eid
+  ),
+  dept_stats AS (
+    SELECT
+      COALESCE(department, 'Others') as department,
+      COUNT(*) as count,
+      COALESCE(ROUND(AVG(comprehensive_rating)::numeric, 1), 0) as avg_rating
+    FROM interviewee_data
+    GROUP BY COALESCE(department, 'Others')
+    ORDER BY count DESC
+    LIMIT 10
+  )
+  SELECT json_build_object(
+    'total_interviewees', (SELECT count(*) FROM interviewee_data),
+    'avg_rating', (SELECT COALESCE(ROUND(AVG(comprehensive_rating)::numeric, 1), 0) FROM interviewee_data),
+    'p_level_distribution', (
+      SELECT json_build_object(
+        'P1', COALESCE(SUM(p1_count), 0),
+        'P2', COALESCE(SUM(p2_count), 0),
+        'P3', COALESCE(SUM(p3_count), 0),
+        'P4', COALESCE(SUM(p4_count), 0)
+      ) FROM interviewee_data
+    ),
+    'department_distribution', (
+      SELECT json_object_agg(department, count)
+      FROM dept_stats
+    ),
+    'department_ratings', (
+      SELECT json_object_agg(department, json_build_object('count', count, 'avg_rating', avg_rating))
+      FROM dept_stats
+    ),
+    'interview_frequency', (
+      SELECT json_agg(json_build_object('day', day, 'count', cnt))
+      FROM (
+        SELECT
+          to_char(date_trunc('day', created_at), 'MM/DD') as day,
+          count(*) as cnt
+        FROM interviews
+        WHERE created_at >= now() - interval '7 days'
+        GROUP BY date_trunc('day', created_at)
+        ORDER BY date_trunc('day', created_at)
+      ) r
+    )
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION get_admin_interviewees_stats FROM anon;
+GRANT  EXECUTE ON FUNCTION get_admin_interviewees_stats TO authenticated;
