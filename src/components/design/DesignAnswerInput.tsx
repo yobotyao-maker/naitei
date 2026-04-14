@@ -26,6 +26,7 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
   const [recording, setRecording] = useState(false)
   const [showText, setShowText] = useState(false)
   const [unsupported, setUnsupported] = useState(false)
+  const [showTemplate, setShowTemplate] = useState(true)
   const recognitionRef = useRef<any>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -68,10 +69,42 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
       <div>
         <div className="flex items-start justify-between mb-2">
           <h2 className="text-sm font-medium text-gray-500">質問</h2>
-          <HintsTooltip hints={question.hints} />
+          <div className="flex gap-2 items-center">
+            {question.hints?.template && (
+              <button
+                onClick={() => setShowTemplate(!showTemplate)}
+                className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                title="示範テンプレートを表示/非表示"
+              >
+                {showTemplate ? '📋 示範を隠す' : '📋 示範を表示'}
+              </button>
+            )}
+            <HintsTooltip hints={question.hints} />
+          </div>
         </div>
         <p className="text-gray-800 text-sm leading-relaxed">{question.content}</p>
       </div>
+
+      {/* 示範テンプレート表示エリア */}
+      {showTemplate && question.hints?.template && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-blue-900">📋 回答の流れ（この順で説明してください）</h3>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {question.hints.template.map((item, i) => (
+              <div key={i} className="bg-white rounded-lg p-3 border border-blue-100 hover:border-blue-300 transition-colors">
+                <div className="flex gap-3 items-start">
+                  <span className="text-sm font-bold text-white bg-blue-500 rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm text-gray-700 leading-relaxed pt-0.5">{item}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 語音録入 */}
       {!unsupported && (
@@ -107,17 +140,41 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip }: Props)
             : (showText ? '▲ 文字入力を隠す' : '▼ または文字で入力')}
         </button>
         {showText && (
-          <div className="mt-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">あなたの回答</label>
-            <textarea
-              ref={textareaRef}
-              value={answer}
-              onChange={e => setAnswer(e.target.value)}
-              placeholder="具体的な経験・プロジェクト例を交えて回答してください..."
-              rows={6}
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
-            />
-            <div className="text-right text-xs text-gray-300 mt-1">{answer.length} 文字</div>
+          <div className="mt-3 space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">あなたの回答</label>
+                <span className="text-xs text-gray-400">{answer.length} 文字</span>
+              </div>
+              <textarea
+                ref={textareaRef}
+                value={answer}
+                onChange={e => setAnswer(e.target.value)}
+                placeholder={question.hints?.template
+                  ? `例：\n${question.hints.template.map((t, i) => `${i + 1}. ${t.substring(0, 20)}...`).join('\n')}`
+                  : '具体的な経験・プロジェクト例を交えて回答してください...'}
+                rows={6}
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-200 resize-none"
+              />
+            </div>
+
+            {/* ヒントの充足度表示 */}
+            {question.hints?.tips && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-medium text-amber-900">🎯 高得点のポイント：</p>
+                <ul className="space-y-1">
+                  {question.hints.tips.map((tip, i) => {
+                    const isCovered = answer.length > 50 // 简单启发式检查
+                    return (
+                      <li key={i} className="text-xs text-amber-800 flex gap-2">
+                        <span className={isCovered ? '✓' : '○'}></span>
+                        <span>{tip}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

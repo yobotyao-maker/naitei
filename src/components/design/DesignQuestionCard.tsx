@@ -1,4 +1,11 @@
 'use client'
+import HintsTooltip from './HintsTooltip'
+
+type Hints = {
+  template?: string[]
+  tips?: string[]
+  keywords?: string[]
+}
 
 type Props = {
   question: {
@@ -6,6 +13,7 @@ type Props = {
     category: string
     content: string
     complexity: string | null
+    hints?: Hints
   }
   current: number
   total: number
@@ -36,13 +44,11 @@ export default function DesignQuestionCard({ question, current, total, onReady }
       </div>
 
       <div className="space-y-2">
-        <div className="text-xs text-gray-400 font-medium">Q{question.number}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-gray-400 font-medium">Q{question.number}</div>
+          <HintsTooltip hints={question.hints} />
+        </div>
         <p className="text-gray-900 text-base leading-relaxed">{question.content}</p>
-      </div>
-
-      <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-700 leading-relaxed">
-        <span className="font-medium">ヒント：</span>
-        具体的な経験やプロジェクト例を交えながら、設計上の判断根拠も含めて回答してください。
       </div>
 
       <button

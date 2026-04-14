@@ -39,21 +39,20 @@ export default function HintsTooltip({ hints }: Props) {
           {hints.template && hints.template.length > 0 && (
             <div>
               <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                <span>📋</span> 回答テンプレート
+                <span>📋</span> 回答テンプレート（この順で説明してください）
               </div>
-              <ul className="space-y-1">
+              <div className="bg-blue-50 rounded-lg p-3 space-y-2">
                 {hints.template.map((item, i) => (
-                  <li key={i} className="text-xs text-gray-700 flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      className="mt-0.5 rounded cursor-pointer"
-                      defaultChecked={false}
-                      onChange={() => {}}
-                    />
-                    <span>{item}</span>
-                  </li>
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xs font-bold text-blue-600 bg-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-700 font-medium">{item}</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
