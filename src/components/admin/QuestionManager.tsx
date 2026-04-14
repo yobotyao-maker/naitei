@@ -11,6 +11,11 @@ type Question = {
   is_required: boolean
   display_order: string | null
   design_domains: string[]
+  hints?: {
+    template?: string[]
+    tips?: string[]
+    keywords?: string[]
+  }
 }
 
 const COMPLEXITY_OPTIONS = ['必須問題', '通常問題', '加点減点問題', '補足事項', '-']
@@ -31,6 +36,8 @@ const EMPTY_FORM = {
   is_required: false,
   display_order: '任意',
   design_domains: [] as string[],
+  hintsTemplate: '',
+  hintsTips: '',
 }
 
 export default function QuestionManager() {
@@ -73,6 +80,8 @@ export default function QuestionManager() {
       is_required:    q.is_required,
       display_order:  q.display_order ?? '任意',
       design_domains: q.design_domains ?? [],
+      hintsTemplate:  q.hints?.template?.join('\n') ?? '',
+      hintsTips:      q.hints?.tips?.join('\n') ?? '',
     })
   }
 
@@ -96,6 +105,11 @@ export default function QuestionManager() {
   const save = async () => {
     if (!form.number || !form.category || !form.content) return
     setSaving(true)
+    const hints = {
+      template: form.hintsTemplate.split('\n').map(s => s.trim()).filter(Boolean),
+      tips: form.hintsTips.split('\n').map(s => s.trim()).filter(Boolean),
+      keywords: [] as string[],
+    }
     const payload = {
       number:         Number(form.number),
       category:       form.category,
@@ -104,6 +118,7 @@ export default function QuestionManager() {
       is_required:    form.is_required,
       display_order:  form.display_order || null,
       design_domains: form.design_domains,
+      hints:          (hints.template.length > 0 || hints.tips.length > 0) ? hints : null,
     }
 
     const url    = editing ? `/api/admin/questions/${editing.id}` : '/api/admin/questions'
@@ -340,6 +355,34 @@ export default function QuestionManager() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* ヒント - テンプレート */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  💡 回答テンプレート <span className="text-gray-400 font-normal">（1行1項目）</span>
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="背景説明&#10;具体的な実装方法&#10;直面した課題&#10;解決策と成果"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none leading-relaxed text-gray-700"
+                  value={form.hintsTemplate}
+                  onChange={e => setForm(f => ({ ...f, hintsTemplate: e.target.value }))}
+                />
+              </div>
+
+              {/* ヒント - ポイント */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  🎯 回答のポイント <span className="text-gray-400 font-normal">（1行1項目）</span>
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="具体例を交える&#10;数字で示す&#10;なぜかを説明する"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none leading-relaxed text-gray-700"
+                  value={form.hintsTips}
+                  onChange={e => setForm(f => ({ ...f, hintsTips: e.target.value }))}
+                />
               </div>
 
               {/* ボタン */}
