@@ -136,6 +136,53 @@ export default function DesignPage() {
     }
   }
 
+  // ── 回答送信・AI反馈取得（フィードバック非表示で次へ） ────────
+  const handleAnswerWithoutFeedback = async (answer: string) => {
+    setCurrentAnswer(answer)
+    setStep('loading-eval')
+
+    try {
+      const res = await fetch('/api/design/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          question_id: currentQuestion.id,
+          question_number: currentQuestion.number,
+          category: currentQuestion.category,
+          question_content: currentQuestion.content,
+          complexity: currentQuestion.complexity,
+          user_answer: answer,
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
+
+      // 評価結果を保存（フィードバックは表示しない）
+      setCurrentResult(result)
+      setCurrentAnswer(answer)
+
+      // 最後の問題かどうかで判定
+      if (currentIdx + 1 >= questions.length) {
+        // 最後の問題 → 完了処理へ
+        const finalAnswers = [...answers, { question: currentQuestion, answer, result }]
+        finishEvaluation(finalAnswers)
+      } else {
+        // 次の問題へ（結果ページをスキップ）
+        setAnswers(prev => [...prev, { question: currentQuestion, answer, result }])
+        setCurrentIdx(i => i + 1)
+        setCurrentResult(null)
+        setCurrentAnswer('')
+        setPendingFeedback('')
+        setStep('question')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('採点に失敗しました。もう一度お試しください。')
+      setStep('answer')
+    }
+  }
+
   // スキップ（スコア 0）→ 直接進入下一題 or 完了
   const handleSkip = () => {
     if (!sessionId) return
@@ -329,6 +376,7 @@ export default function DesignPage() {
             question={currentQuestion}
             onSubmit={handleAnswer}
             onSkip={handleSkip}
+            onSubmitWithoutFeedback={handleAnswerWithoutFeedback}
           />
         )}
 
