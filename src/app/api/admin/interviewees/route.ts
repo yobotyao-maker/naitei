@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const interviewMin = sp.get('interview_min') ? parseInt(sp.get('interview_min')!) : null
   const interviewMax = sp.get('interview_max') ? parseInt(sp.get('interview_max')!) : null
   const page  = parseInt(sp.get('page') || '0')
-  const limit = 20
+  const limit = parseInt(sp.get('limit') || '20')
 
   try {
     const offset = page * limit

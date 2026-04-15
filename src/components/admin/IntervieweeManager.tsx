@@ -47,7 +47,7 @@ export default function IntervieweeManager() {
     if (interviewMax) params.set('interview_max', interviewMax)
     params.set('page', String(p))
 
-    const res  = await fetch(`/api/admin/interviewees?${params}`)
+    const res  = await fetch(`/api/admin/interviewees?${params}&limit=10`)
     const data = await res.json()
     setRows(data.rows ?? [])
     setTotal(data.total ?? 0)
@@ -103,7 +103,7 @@ export default function IntervieweeManager() {
     }
   }
 
-  const totalPages = total != null ? Math.ceil(total / 20) : 0
+  const totalPages = total != null ? Math.ceil(total / 10) : 0
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -313,23 +313,48 @@ export default function IntervieweeManager() {
       </div>
 
       {/* ページネーション */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-50">
-          <button
-            onClick={() => search(page - 1)}
-            disabled={page === 0 || loading}
-            className="text-xs text-gray-500 disabled:text-gray-300 hover:text-gray-700 transition-colors"
-          >
-            ← 前へ
-          </button>
-          <span className="text-xs text-gray-400">{page + 1} / {totalPages}</span>
-          <button
-            onClick={() => search(page + 1)}
-            disabled={page >= totalPages - 1 || loading}
-            className="text-xs text-gray-500 disabled:text-gray-300 hover:text-gray-700 transition-colors"
-          >
-            次へ →
-          </button>
+      {total != null && (
+        <div className="px-5 py-4 border-t border-gray-50 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-gray-600">
+              全 <span className="font-semibold text-gray-900">{total}</span> 件
+              {totalPages > 0 && (
+                <>
+                  ・ <span className="font-semibold text-gray-900">{page + 1}</span> / {totalPages} ページ
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => search(0)}
+                disabled={page === 0 || loading}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 hover:bg-white hover:border-gray-300 transition-colors disabled:bg-transparent"
+              >
+                ⟨⟨ 最初
+              </button>
+              <button
+                onClick={() => search(page - 1)}
+                disabled={page === 0 || loading}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 hover:bg-white hover:border-gray-300 transition-colors disabled:bg-transparent"
+              >
+                ⟨ 前へ
+              </button>
+              <button
+                onClick={() => search(page + 1)}
+                disabled={page >= totalPages - 1 || loading}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 hover:bg-white hover:border-gray-300 transition-colors disabled:bg-transparent"
+              >
+                次へ ⟩
+              </button>
+              <button
+                onClick={() => search(totalPages - 1)}
+                disabled={page >= totalPages - 1 || loading}
+                className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 hover:bg-white hover:border-gray-300 transition-colors disabled:bg-transparent"
+              >
+                最後 ⟩⟩
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
