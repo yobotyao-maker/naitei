@@ -188,21 +188,13 @@ export default function DesignAnswerInput({ question, onSubmit, onSkip, onSubmit
         >
           スキップ
         </button>
-        <button
-          type="button"
-          disabled={!canSubmit}
-          onClick={() => onSubmit(answer.trim())}
-          className="flex-[2] bg-[#2D5BE3] hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-white font-medium py-3 rounded-2xl transition-all"
-        >
-          採点する →
-        </button>
         {onSubmitWithoutFeedback && (
           <button
             type="button"
             disabled={!canSubmit}
             onClick={() => onSubmitWithoutFeedback(answer.trim())}
-            className="flex-[1.5] border border-[#2D5BE3] hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-[#2D5BE3] font-medium py-3 rounded-2xl transition-all"
-            title="評価をスキップして次の問題へ"
+            className="flex-[3] bg-[#2D5BE3] hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 text-white font-medium py-3 rounded-2xl transition-all"
+            title="評価をして次の問題へ"
           >
             下一題 →
           </button>
