@@ -14,6 +14,7 @@ type Session = {
   total_score: number
   p_level: string
   completed_at: string
+  status: string
 }
 
 const P_LEVEL_COLOR: Record<string, string> = {
@@ -36,6 +37,7 @@ export default function DesignSessionsSearch() {
   // フィルター状態
   const [eid, setEid] = useState('')
   const [pLevel, setPLevel] = useState('')
+  const [status, setStatus] = useState('completed')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
@@ -44,6 +46,7 @@ export default function DesignSessionsSearch() {
     const params = new URLSearchParams()
     if (eid) params.set('eid', eid.trim())
     if (pLevel) params.set('p_level', pLevel)
+    if (status) params.set('status', status)
     if (from) params.set('from', from)
     if (to) params.set('to', to)
     params.set('page', String(p))
@@ -54,7 +57,7 @@ export default function DesignSessionsSearch() {
     setTotal(data.total ?? 0)
     setPage(p)
     setLoading(false)
-  }, [eid, pLevel, from, to])
+  }, [eid, pLevel, status, from, to])
 
   useEffect(() => { load(0) }, [load])
 
@@ -88,6 +91,14 @@ export default function DesignSessionsSearch() {
             onChange={e => setEid(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 font-mono"
           />
+          <select
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white text-gray-600"
+          >
+            <option value="in_progress">進行中</option>
+            <option value="completed">完了</option>
+          </select>
           <select
             value={pLevel}
             onChange={e => setPLevel(e.target.value)}

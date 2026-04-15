@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   const pLevel = sp.get('p_level') || null
   const from   = sp.get('from')   || null
   const to     = sp.get('to')     || null
+  const status = sp.get('status') || 'completed'
   const page   = parseInt(sp.get('page') || '0')
   const limit  = 50
 
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('design_sessions')
       .select('*', { count: 'exact' })
-      .eq('status', 'completed')
+      .eq('status', status)
 
     // フィルター
     if (eid) {
