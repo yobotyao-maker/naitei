@@ -249,23 +249,32 @@ export default function DesignPage() {
       const fbData = await fbRes.json()
       setOverallFeedback(fbData.overall_feedback ?? '')
 
-      // セッション完了
+      // セッション完了 — ステータスを completed に設定
       const patchRes = await fetch('/api/design/sessions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, question_scores, overall_feedback: fbData.overall_feedback }),
+        body: JSON.stringify({
+          session_id: sessionId,
+          question_scores,
+          overall_feedback: fbData.overall_feedback,
+          status: 'completed'
+        }),
       })
 
       if (!patchRes.ok) {
         const patchErr = await patchRes.json()
         console.error('[PATCH Error]', patchErr)
-        alert('セッション完了に失敗しました: ' + (patchErr.error || 'Unknown error'))
-        throw new Error(patchErr.error || 'Failed to complete session')
+        // エラーでも summary ページは表示（ステータス更新失敗でも続行）
+        console.warn('Failed to update session status, but continuing to summary')
+      } else {
+        console.log('[Session Completed]', await patchRes.json())
       }
 
+      // サマリーページへ移動 — ここで complete と判定
       setStep('summary')
     } catch (e) {
-      console.error(e)
+      console.error('[finishEvaluation Error]', e)
+      // エラーが発生しても summary ページは表示
       setStep('summary')
     }
   }
