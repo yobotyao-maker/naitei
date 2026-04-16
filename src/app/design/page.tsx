@@ -250,11 +250,18 @@ export default function DesignPage() {
       setOverallFeedback(fbData.overall_feedback ?? '')
 
       // セッション完了
-      await fetch('/api/design/sessions', {
+      const patchRes = await fetch('/api/design/sessions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId, question_scores, overall_feedback: fbData.overall_feedback }),
       })
+
+      if (!patchRes.ok) {
+        const patchErr = await patchRes.json()
+        console.error('[PATCH Error]', patchErr)
+        alert('セッション完了に失敗しました: ' + (patchErr.error || 'Unknown error'))
+        throw new Error(patchErr.error || 'Failed to complete session')
+      }
 
       setStep('summary')
     } catch (e) {
