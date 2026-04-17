@@ -74,10 +74,13 @@ export default function ReportPage() {
           a { text-decoration: none; color: #1F2937; }
           h2 { page-break-after: avoid; }
           div.space-y-5 { orphans: 2; widows: 2; }
+          div[class*="max-w-"] { max-width: 100% !important; }
+          .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
+          .px-10 { padding-left: 15mm !important; padding-right: 15mm !important; }
         }
         @page {
           size: A4;
-          margin: 20mm 20mm 20mm 20mm;
+          margin: 15mm 15mm 15mm 15mm;
         }
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
