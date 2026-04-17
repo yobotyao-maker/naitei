@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { calcBackgroundScore, calcPLevel, calcTechnicalScore, selectQuestions } from '@/lib/design-scoring'
+import { calcBackgroundScore, calcPLevel, selectQuestions } from '@/lib/design-scoring'
 
 function getServiceClient() {
   return createServiceClient(
@@ -109,9 +109,10 @@ export async function PATCH(req: NextRequest) {
 
     if (sErr || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
-    // 技術スコアを平均分で正規化（複数の設問数に対応）
-    const scoreValues = Object.values(question_scores as Record<string, number>)
-    const technical_score = calcTechnicalScore(scoreValues)
+    const technical_score = Object.values(question_scores as Record<string, number>).reduce(
+      (sum, s) => sum + (s ?? 0),
+      0,
+    )
     const total_score = session.background_score + technical_score
     const p_level = calcPLevel(total_score)
 

@@ -62,20 +62,13 @@ export function calcBackgroundScore(params: {
   )
 }
 
-// ── Pレベル判定（合計100点満点、技術スコアは平均分 × 10で正規化） ───────
+// ── Pレベル判定（合計100点満点） ───────────────────────────
 
 export function calcPLevel(totalScore: number): 'P1' | 'P2' | 'P3' | 'P4' {
   if (totalScore >= 90) return 'P4'
   if (totalScore >= 80) return 'P3'
   if (totalScore >= 60) return 'P2'
   return 'P1'
-}
-
-// 技術スコア計算（複数の設問数に対応）
-export function calcTechnicalScore(questionScores: number[]): number {
-  if (questionScores.length === 0) return 0
-  const avgScore = questionScores.reduce((s, v) => s + v, 0) / questionScores.length
-  return Math.round(avgScore * 10)
 }
 
 export const P_LEVEL_LABELS: Record<string, { label: string; description: string; color: string }> = {
@@ -141,22 +134,22 @@ export function selectQuestions(
   const q28 = get(28)
   if (q28) selected.push(q28)
 
-  // 残り5スロットを埋める（通常問題 + 加点減点問題 + 補足事項から選択、ドメイン関連優先）
-  const candidates = allQuestions.filter(
+  // 残り2スロットを通常問題で埋める（選択ドメイン関連 or 番号順）
+  const normal = allQuestions.filter(
     q =>
-      (q.complexity === '通常問題' || q.complexity === '加点減点問題' || q.complexity === '補足事項') &&
+      q.complexity === '通常問題' &&
       !selected.find(s => s.id === q.id) &&
       q.number !== 11,
   )
 
   // 選択ドメインに関連する問題を優先
-  const domainRelated = candidates.filter(q =>
+  const domainRelated = normal.filter(q =>
     q.design_domains.some(d => selectedDomains.includes(d)),
   )
-  const others = candidates.filter(q => !domainRelated.find(d => d.id === q.id))
+  const others = normal.filter(q => !domainRelated.find(d => d.id === q.id))
 
   for (const q of [...domainRelated, ...others]) {
-    if (selected.length >= 14) break
+    if (selected.length >= 10) break
     selected.push(q)
   }
 
