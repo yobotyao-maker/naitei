@@ -64,14 +64,20 @@ export function calcBackgroundScore(params: {
 
 // ── Pレベル判定（合計100点満点） ───────────────────────────
 
-export function calcPLevel(totalScore: number): 'P1' | 'P2' | 'P3' | 'P4' {
+export function calcPLevel(totalScore: number): 'P0' | 'P1' | 'P2' | 'P3' | 'P4' {
   if (totalScore >= 90) return 'P4'
   if (totalScore >= 80) return 'P3'
   if (totalScore >= 60) return 'P2'
-  return 'P1'
+  if (totalScore >= 30) return 'P1'
+  return 'P0'
 }
 
 export const P_LEVEL_LABELS: Record<string, { label: string; description: string; color: string }> = {
+  P0: {
+    label: 'P0 — 要件を満たさない',
+    description: '設計スキルが基準に達していません。専門的なトレーニングが必要です。',
+    color: 'text-red-500',
+  },
   P1: {
     label: 'P1 — 設計初心者',
     description: 'SVの指導によりSimple設計を担当可。トレーニング&P1試験が必要。',
