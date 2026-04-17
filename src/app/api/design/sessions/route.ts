@@ -10,16 +10,11 @@ function getServiceClient() {
   )
 }
 
-// POST /api/design/sessions — セッション作成 + 問題リスト返却（ログイン必須）
+// POST /api/design/sessions — セッション作成 + 問題リスト返却
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-
-    // ログイン必須チェック
-    if (!user) {
-      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
-    }
 
     const body = await req.json()
     const {
@@ -59,9 +54,11 @@ export async function POST(req: NextRequest) {
 
     const questions = selectQuestions(allQuestions ?? [], selected_domains ?? [])
 
-    // ログイン済み → DBに保存
+    // ユーザーID（ログイン済みまたは匿名）
+    const userId = user?.id || crypto.randomUUID()
+
     const insertData: Record<string, unknown> = {
-      user_id: user.id,
+      user_id: userId,
       japanese_level,
       soft_skill_level,
       basic_design_years,
