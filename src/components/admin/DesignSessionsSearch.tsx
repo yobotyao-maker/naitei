@@ -18,6 +18,7 @@ type Session = {
 }
 
 const P_LEVEL_COLOR: Record<string, string> = {
+  P0: 'text-red-600 bg-red-50',
   P1: 'text-gray-500 bg-gray-50',
   P2: 'text-blue-500 bg-blue-50',
   P3: 'text-green-600 bg-green-50',
@@ -136,6 +137,7 @@ export default function DesignSessionsSearch() {
             className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-400 bg-white text-gray-600"
           >
             <option value="">全 P レベル</option>
+            <option value="P0">P0</option>
             <option value="P1">P1</option>
             <option value="P2">P2</option>
             <option value="P3">P3</option>
@@ -258,6 +260,7 @@ export default function DesignSessionsSearch() {
                           onChange={e => setEditData({ ...editData, p_level: e.target.value })}
                           className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400 bg-white"
                         >
+                          <option value="P0">P0</option>
                           <option value="P1">P1</option>
                           <option value="P2">P2</option>
                           <option value="P3">P3</option>

@@ -66,20 +66,24 @@ export default async function IntervieweeDetailPage({
             <div className="text-sm font-medium text-gray-900">{formatDate(interviewee.latest_interview_date)}</div>
           </div>
           <div className="bg-red-50 rounded-lg p-3">
-            <div className="text-xs text-red-600 mb-1">P1</div>
-            <div className="text-lg font-bold text-red-600">{interviewee.p1_count}</div>
+            <div className="text-xs text-red-600 mb-1">P0</div>
+            <div className="text-lg font-bold text-red-600">{interviewee.p0_count ?? 0}</div>
           </div>
-          <div className="bg-yellow-50 rounded-lg p-3">
-            <div className="text-xs text-yellow-600 mb-1">P2</div>
-            <div className="text-lg font-bold text-yellow-600">{interviewee.p2_count}</div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="text-xs text-gray-600 mb-1">P1</div>
+            <div className="text-lg font-bold text-gray-600">{interviewee.p1_count}</div>
           </div>
           <div className="bg-blue-50 rounded-lg p-3">
-            <div className="text-xs text-blue-600 mb-1">P3</div>
-            <div className="text-lg font-bold text-blue-600">{interviewee.p3_count}</div>
+            <div className="text-xs text-blue-600 mb-1">P2</div>
+            <div className="text-lg font-bold text-blue-600">{interviewee.p2_count}</div>
           </div>
           <div className="bg-green-50 rounded-lg p-3">
-            <div className="text-xs text-green-600 mb-1">P4</div>
-            <div className="text-lg font-bold text-green-600">{interviewee.p4_count}</div>
+            <div className="text-xs text-green-600 mb-1">P3</div>
+            <div className="text-lg font-bold text-green-600">{interviewee.p3_count}</div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-3">
+            <div className="text-xs text-purple-600 mb-1">P4</div>
+            <div className="text-lg font-bold text-purple-600">{interviewee.p4_count}</div>
           </div>
         </div>
       </div>
@@ -164,10 +168,11 @@ export default async function IntervieweeDetailPage({
                     <td className="px-4 py-3 text-gray-700">{session.department || '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        session.p_level === 'P1' ? 'bg-red-50 text-red-600' :
-                        session.p_level === 'P2' ? 'bg-yellow-50 text-yellow-600' :
-                        session.p_level === 'P3' ? 'bg-blue-50 text-blue-600' :
-                        'bg-green-50 text-green-600'
+                        session.p_level === 'P0' ? 'bg-red-50 text-red-600' :
+                        session.p_level === 'P1' ? 'bg-gray-50 text-gray-600' :
+                        session.p_level === 'P2' ? 'bg-blue-50 text-blue-600' :
+                        session.p_level === 'P3' ? 'bg-green-50 text-green-600' :
+                        'bg-purple-50 text-purple-600'
                       }`}>
                         {session.p_level}
                       </span>

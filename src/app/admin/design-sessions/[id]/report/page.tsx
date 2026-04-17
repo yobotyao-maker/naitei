@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
 const P_LEVEL_LABEL: Record<string, { title: string; desc: string; color: string; bg: string }> = {
+  P0: { title: 'P0 — 要件を満たさない', desc: '設計スキルが基準に達していません。専門的なトレーニングが必要です。', color: '#DC2626', bg: '#FEF2F2' },
   P1: { title: 'P1 — 設計初心者', desc: 'SVの指導によりSimple設計を担当可。トレーニング&P1試験が必要。', color: '#6B7280', bg: '#F3F4F6' },
   P2: { title: 'P2 — 設計中級者', desc: 'Medium機能を担当可。Backend/Front設計経験あり。(ML9/ML10)', color: '#3B82F6', bg: '#EFF6FF' },
   P3: { title: 'P3 — 設計高級者', desc: 'Complex機能を担当可。Front+Backend設計経験あり。Review担当可。(ML8/ML9)', color: '#16A34A', bg: '#F0FDF4' },
