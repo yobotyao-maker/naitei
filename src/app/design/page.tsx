@@ -54,6 +54,7 @@ export default function DesignPage() {
   const [overallFeedback, setOverallFeedback] = useState('')
   const [showFeedback, setShowFeedback] = useState(false)
   const [pendingFeedback, setPendingFeedback] = useState<string>('')
+  const [showTimeoutAlert, setShowTimeoutAlert] = useState(false)
 
   // ── Step 1 → 2: 背景評価完了 ──────────────────────────────
   const handleBackgroundSubmit = (data: BackgroundData) => {
@@ -230,6 +231,7 @@ export default function DesignPage() {
 
       // 総合フィードバック生成（タイムアウト保護: 25秒）
       let overallFeedbackText = ''
+      let hasTimeout = false
       try {
         const fbController = new AbortController()
         const fbTimeout = setTimeout(() => fbController.abort(), 25000)
@@ -263,11 +265,15 @@ export default function DesignPage() {
       } catch (fbErr) {
         if (fbErr instanceof Error && fbErr.name === 'AbortError') {
           console.warn('[Feedback Generation Timeout] API response took too long')
+          hasTimeout = true
         } else {
           console.warn('[Feedback Generation Error]', fbErr)
         }
       }
       setOverallFeedback(overallFeedbackText)
+      if (hasTimeout) {
+        setShowTimeoutAlert(true)
+      }
 
       // セッション完了 — ステータスを completed に設定（タイムアウト保護: 15秒）
       try {
@@ -472,6 +478,35 @@ export default function DesignPage() {
           }}
           onClose={() => setShowFeedback(false)}
         />
+      )}
+
+      {/* タイムアウトアラート */}
+      {showTimeoutAlert && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 max-w-sm mx-4 shadow-lg">
+            <div className="text-center space-y-4">
+              <div className="text-3xl">⚠️</div>
+              <h3 className="text-lg font-bold text-gray-900">通信タイムアウト</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                フィードバック生成に時間がかかっています。より安定した体験のため、ログインしてからもう一度受験することをお勧めします。
+              </p>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowTimeoutAlert(false)}
+                  className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
+                >
+                  このまま続行
+                </button>
+                <Link
+                  href="/auth"
+                  className="flex-1 text-center bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+                >
+                  ログインして再開
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )
