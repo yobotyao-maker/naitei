@@ -134,22 +134,22 @@ export function selectQuestions(
   const q28 = get(28)
   if (q28) selected.push(q28)
 
-  // 残り2スロットを通常問題で埋める（選択ドメイン関連 or 番号順）
-  const normal = allQuestions.filter(
+  // 残り4スロットを埋める（通常問題 + 加点減点問題から選択、ドメイン関連優先）
+  const candidates = allQuestions.filter(
     q =>
-      q.complexity === '通常問題' &&
+      (q.complexity === '通常問題' || q.complexity === '加点減点問題') &&
       !selected.find(s => s.id === q.id) &&
       q.number !== 11,
   )
 
   // 選択ドメインに関連する問題を優先
-  const domainRelated = normal.filter(q =>
+  const domainRelated = candidates.filter(q =>
     q.design_domains.some(d => selectedDomains.includes(d)),
   )
-  const others = normal.filter(q => !domainRelated.find(d => d.id === q.id))
+  const others = candidates.filter(q => !domainRelated.find(d => d.id === q.id))
 
   for (const q of [...domainRelated, ...others]) {
-    if (selected.length >= 10) break
+    if (selected.length >= 13) break
     selected.push(q)
   }
 
