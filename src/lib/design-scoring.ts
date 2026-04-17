@@ -134,10 +134,10 @@ export function selectQuestions(
   const q28 = get(28)
   if (q28) selected.push(q28)
 
-  // 残り4スロットを埋める（通常問題 + 加点減点問題から選択、ドメイン関連優先）
+  // 残り5スロットを埋める（通常問題 + 加点減点問題 + 補足事項から選択、ドメイン関連優先）
   const candidates = allQuestions.filter(
     q =>
-      (q.complexity === '通常問題' || q.complexity === '加点減点問題') &&
+      (q.complexity === '通常問題' || q.complexity === '加点減点問題' || q.complexity === '補足事項') &&
       !selected.find(s => s.id === q.id) &&
       q.number !== 11,
   )
@@ -149,7 +149,7 @@ export function selectQuestions(
   const others = candidates.filter(q => !domainRelated.find(d => d.id === q.id))
 
   for (const q of [...domainRelated, ...others]) {
-    if (selected.length >= 13) break
+    if (selected.length >= 14) break
     selected.push(q)
   }
 
