@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    // ログイン必須
+    if (!user) {
+      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    }
+
     const body = await req.json()
     const {
       interview_date,
@@ -55,6 +60,7 @@ export async function POST(req: NextRequest) {
     const questions = selectQuestions(allQuestions ?? [], selected_domains ?? [])
 
     const insertData: Record<string, unknown> = {
+      user_id: user.id,
       japanese_level,
       soft_skill_level,
       basic_design_years,
@@ -64,18 +70,13 @@ export async function POST(req: NextRequest) {
       background_score,
       status: 'in_progress',
     }
-
-    // ユーザーID（ログイン済みの場合のみ）
-    if (user) {
-      insertData.user_id = user.id
-    }
     if (interview_date)    insertData.interview_date    = interview_date
     insertData.interviewer_eid   = interviewer_eid
     if (interviewee_eid)   insertData.interviewee_eid   = interviewee_eid
     if (department)        insertData.department        = department
 
-    // Use service role to bypass RLS for anonymous users
-    const client = user ? supabase : getServiceClient()
+    // ログイン済みなので通常のクライアントを使用
+    const client = supabase
     const { data: session, error } = await client
       .from('design_sessions')
       .insert(insertData)
