@@ -70,8 +70,10 @@ export default function ReportPage() {
           aside { display: none !important; }
           .no-print { display: none !important; }
           .page-break { page-break-before: always; }
-          .avoid-break { page-break-inside: avoid; }
+          .avoid-break { page-break-inside: avoid; break-inside: avoid; }
           a { text-decoration: none; color: #1F2937; }
+          h2 { page-break-after: avoid; }
+          div.space-y-5 { orphans: 2; widows: 2; }
         }
         @page {
           size: A4;
@@ -156,10 +158,10 @@ export default function ReportPage() {
         </div>
 
         {/* ページ 2: 回答詳細 */}
-        <div className="page-break">
-          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4 pb-2 border-b border-gray-200">回答詳細</h2>
+        <div className="mt-12 pt-8 border-t-2 border-gray-200">
+          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-6 pb-2 border-b border-gray-200">回答詳細</h2>
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             {answers.map(a => (
               <div key={a.question_number} className="avoid-break border border-gray-200 rounded-lg overflow-hidden">
                 {/* ヘッダー */}
@@ -206,7 +208,7 @@ export default function ReportPage() {
 
         {/* 最後のページ: 総合フィードバック */}
         {s.overall_feedback && (
-          <div className="page-break">
+          <div className="mt-12 pt-8 border-t-2 border-gray-200 avoid-break">
             <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4 pb-2 border-b border-gray-200">総合フィードバック</h2>
             <div className="bg-gray-50 border border-gray-200 rounded-lg px-5 py-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
               {s.overall_feedback}

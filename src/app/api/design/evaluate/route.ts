@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
       throw new Error('Claude returned invalid JSON')
     }
 
-    // ログイン済み かつ ゲストセッションでない場合のみ DB に保存
-    if (user && session_id && !String(session_id).startsWith('guest-')) {
+    // ログイン済みユーザーの回答を DB に保存
+    if (user && session_id) {
       // セッションから EID を取得して回答行に付与
       const { data: sessionData } = await supabase
         .from('design_sessions')

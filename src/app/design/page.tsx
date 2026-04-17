@@ -75,11 +75,14 @@ export default function DesignPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...backgroundData, selected_domains: domains }),
       })
-      const session = await sessionRes.json()
+
       if (sessionRes.status === 401) {
+        alert('ログインが必要です。ログインページにリダイレクトします。')
         window.location.href = '/auth'
         return
       }
+
+      const session = await sessionRes.json()
       if (!sessionRes.ok) throw new Error(session.error ?? 'セッション作成失敗')
       setSessionId(session.id)
       setBackgroundScore(session.background_score)
