@@ -16,11 +16,6 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    // ログイン必須
-    if (!user) {
-      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
-    }
-
     const body = await req.json()
     const {
       interview_date,
@@ -60,7 +55,6 @@ export async function POST(req: NextRequest) {
     const questions = selectQuestions(allQuestions ?? [], selected_domains ?? [])
 
     const insertData: Record<string, unknown> = {
-      user_id: user.id,
       japanese_level,
       soft_skill_level,
       basic_design_years,
@@ -70,13 +64,19 @@ export async function POST(req: NextRequest) {
       background_score,
       status: 'in_progress',
     }
+
+    // ユーザーID（ログイン済みの場合のみ）
+    if (user) {
+      insertData.user_id = user.id
+    }
+
     if (interview_date)    insertData.interview_date    = interview_date
     insertData.interviewer_eid   = interviewer_eid
     if (interviewee_eid)   insertData.interviewee_eid   = interviewee_eid
     if (department)        insertData.department        = department
 
-    // ログイン済みなので通常のクライアントを使用
-    const client = supabase
+    // 未ログインの場合は service role でデータ保存
+    const client = user ? supabase : getServiceClient()
     const { data: session, error } = await client
       .from('design_sessions')
       .insert(insertData)
@@ -95,18 +95,25 @@ export async function POST(req: NextRequest) {
 // PATCH /api/design/sessions — セッション完了（集計・Pレベル確定）
 export async function PATCH(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
     const { session_id, question_scores, overall_feedback } = await req.json()
 
-    const { data: session, error: sErr } = await supabase
+    // ログイン状態を確認（ログインしている場合のみuser_idで制限）
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // セッション取得（未ログインはservice roleを使用）
+    const client = user ? supabase : getServiceClient()
+    let query = client
       .from('design_sessions')
       .select('background_score')
       .eq('id', session_id)
-      .eq('user_id', user.id)
-      .single()
+
+    // ログインしている場合、user_idも確認
+    if (user) {
+      query = query.eq('user_id', user.id)
+    }
+
+    const { data: session, error: sErr } = await query.single()
 
     if (sErr || !session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
@@ -117,7 +124,8 @@ export async function PATCH(req: NextRequest) {
     const total_score = session.background_score + technical_score
     const p_level = calcPLevel(total_score)
 
-    const { data, error } = await supabase
+    // 更新（同じクライアントを使用）
+    let updateQuery = client
       .from('design_sessions')
       .update({
         question_scores,
@@ -129,9 +137,13 @@ export async function PATCH(req: NextRequest) {
         completed_at: new Date().toISOString(),
       })
       .eq('id', session_id)
-      .eq('user_id', user.id)
-      .select()
-      .single()
+
+    // ログインしている場合、user_idも確認
+    if (user) {
+      updateQuery = updateQuery.eq('user_id', user.id)
+    }
+
+    const { data, error } = await updateQuery.select().single()
 
     if (error) throw error
     return NextResponse.json(data)
