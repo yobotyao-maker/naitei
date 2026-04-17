@@ -65,7 +65,9 @@ export default function ReportPage() {
       {/* 印刷スタイル */}
       <style>{`
         @media print {
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
+          main { margin-left: 0 !important; padding: 0 !important; }
+          aside { display: none !important; }
           .no-print { display: none !important; }
           .page-break { page-break-before: always; }
           .avoid-break { page-break-inside: avoid; }
