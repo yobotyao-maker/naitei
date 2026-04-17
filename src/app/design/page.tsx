@@ -76,12 +76,6 @@ export default function DesignPage() {
         body: JSON.stringify({ ...backgroundData, selected_domains: domains }),
       })
 
-      if (sessionRes.status === 401) {
-        alert('ログインが必要です。ログインページにリダイレクトします。')
-        window.location.href = '/auth'
-        return
-      }
-
       const session = await sessionRes.json()
       if (!sessionRes.ok) throw new Error(session.error ?? 'セッション作成失敗')
       setSessionId(session.id)
@@ -491,22 +485,14 @@ export default function DesignPage() {
               <div className="text-3xl">⚠️</div>
               <h3 className="text-lg font-bold text-gray-900">通信タイムアウト</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                フィードバック生成に時間がかかっています。より安定した体験のため、ログインしてからもう一度受験することをお勧めします。
+                フィードバック生成に時間がかかっています。数分待ってからページを更新してください。
               </p>
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowTimeoutAlert(false)}
-                  className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium py-3 rounded-2xl transition-all text-sm"
-                >
-                  このまま続行
-                </button>
-                <Link
-                  href="/auth"
-                  className="flex-1 text-center bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
-                >
-                  ログインして再開
-                </Link>
-              </div>
+              <button
+                onClick={() => setShowTimeoutAlert(false)}
+                className="w-full bg-[#2D5BE3] hover:bg-blue-700 text-white font-medium py-3 rounded-2xl transition-all text-sm"
+              >
+                了解
+              </button>
             </div>
           </div>
         </div>
