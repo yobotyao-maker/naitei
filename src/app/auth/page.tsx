@@ -38,11 +38,11 @@ export default function AuthPage() {
       if (error) { setError(error.message); setLoading(false); return }
       const res = await fetch('/api/me')
       const me = await res.json()
-      router.push(me.isAdmin ? '/admin' : '/interview')
+      router.push(me.isAdmin ? '/admin' : '/course-select')
     } else {
       const { error } = await supabaseBrowser.auth.signUp({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
-      router.push('/interview')
+      router.push('/course-select')
     }
   }
 
