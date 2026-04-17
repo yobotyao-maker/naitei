@@ -73,7 +73,9 @@ export async function POST(req: NextRequest) {
     if (interviewee_eid)   insertData.interviewee_eid   = interviewee_eid
     if (department)        insertData.department        = department
 
-    const { data: session, error } = await supabase
+    // Use service role to bypass RLS for anonymous users
+    const client = user ? supabase : getServiceClient()
+    const { data: session, error } = await client
       .from('design_sessions')
       .insert(insertData)
       .select()
