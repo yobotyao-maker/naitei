@@ -62,13 +62,20 @@ export function calcBackgroundScore(params: {
   )
 }
 
-// ── Pレベル判定（合計100点満点） ───────────────────────────
+// ── Pレベル判定（合計100点満点、技術スコアは平均分 × 10で正規化） ───────
 
 export function calcPLevel(totalScore: number): 'P1' | 'P2' | 'P3' | 'P4' {
   if (totalScore >= 90) return 'P4'
   if (totalScore >= 80) return 'P3'
   if (totalScore >= 60) return 'P2'
   return 'P1'
+}
+
+// 技術スコア計算（複数の設問数に対応）
+export function calcTechnicalScore(questionScores: number[]): number {
+  if (questionScores.length === 0) return 0
+  const avgScore = questionScores.reduce((s, v) => s + v, 0) / questionScores.length
+  return Math.round(avgScore * 10)
 }
 
 export const P_LEVEL_LABELS: Record<string, { label: string; description: string; color: string }> = {

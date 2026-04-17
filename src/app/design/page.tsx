@@ -11,7 +11,7 @@ import DesignAnswerInput from '@/components/design/DesignAnswerInput'
 import DesignResultCard from '@/components/design/DesignResultCard'
 import DesignSummary from '@/components/design/DesignSummary'
 import FeedbackModal from '@/components/design/FeedbackModal'
-import { calcPLevel } from '@/lib/design-scoring'
+import { calcPLevel, calcTechnicalScore } from '@/lib/design-scoring'
 import type { QuestionRow } from '@/lib/design-scoring'
 
 type Step =
@@ -225,10 +225,11 @@ export default function DesignPage() {
     setStep('loading-summary')
 
     try {
-      // 問題スコア集計
+      // 問題スコア集計（平均分で正規化）
       const question_scores: Record<string, number> = {}
       finalAnswers.forEach(a => { question_scores[a.question.id] = a.result.score })
-      const technicalScore = Object.values(question_scores).reduce((s, v) => s + v, 0)
+      const questionScoreValues = Object.values(question_scores)
+      const technicalScore = calcTechnicalScore(questionScoreValues)
       const totalScore = backgroundScore + technicalScore
       const pLevel = calcPLevel(totalScore)
 
@@ -340,11 +341,11 @@ export default function DesignPage() {
     setPendingFeedback('')
   }
 
-  // サマリー用スコア計算
+  // サマリー用スコア計算（平均分で正規化）
   const summaryScores = (() => {
     const qs: Record<string, number> = {}
     answers.forEach(a => { qs[a.question.id] = a.result.score })
-    const technical = Object.values(qs).reduce((s, v) => s + v, 0)
+    const technical = calcTechnicalScore(Object.values(qs))
     return { technical, total: backgroundScore + technical, pLevel: calcPLevel(backgroundScore + technical) }
   })()
 
