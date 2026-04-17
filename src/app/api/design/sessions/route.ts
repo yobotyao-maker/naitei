@@ -54,11 +54,7 @@ export async function POST(req: NextRequest) {
 
     const questions = selectQuestions(allQuestions ?? [], selected_domains ?? [])
 
-    // ユーザーID（ログイン済みまたは匿名）
-    const userId = user?.id || crypto.randomUUID()
-
     const insertData: Record<string, unknown> = {
-      user_id: userId,
       japanese_level,
       soft_skill_level,
       basic_design_years,
@@ -67,6 +63,11 @@ export async function POST(req: NextRequest) {
       selected_domains,
       background_score,
       status: 'in_progress',
+    }
+
+    // ユーザーID（ログイン済みの場合のみ）
+    if (user) {
+      insertData.user_id = user.id
     }
     if (interview_date)    insertData.interview_date    = interview_date
     insertData.interviewer_eid   = interviewer_eid
