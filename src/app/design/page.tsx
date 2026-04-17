@@ -228,46 +228,78 @@ export default function DesignPage() {
       const totalScore = backgroundScore + technicalScore
       const pLevel = calcPLevel(totalScore)
 
-      // 総合フィードバック生成
-      const fbRes = await fetch('/api/design/evaluate', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          selected_domains: selectedDomains,
-          total_score: totalScore,
-          p_level: pLevel,
-          answers_with_scores: finalAnswers.map(a => ({
-            questionNumber: a.question.number,
-            category: a.question.category,
-            content: a.question.content,
-            answer: a.answer,
-            score: a.result.score,
-            feedback: a.result.feedback,
-          })),
-        }),
-      })
-      const fbData = await fbRes.json()
-      setOverallFeedback(fbData.overall_feedback ?? '')
+      // 総合フィードバック生成（タイムアウト保護: 25秒）
+      let overallFeedbackText = ''
+      try {
+        const fbController = new AbortController()
+        const fbTimeout = setTimeout(() => fbController.abort(), 25000)
 
-      // セッション完了 — ステータスを completed に設定
-      const patchRes = await fetch('/api/design/sessions', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          question_scores,
-          overall_feedback: fbData.overall_feedback,
-          status: 'completed'
-        }),
-      })
+        const fbRes = await fetch('/api/design/evaluate', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selected_domains: selectedDomains,
+            total_score: totalScore,
+            p_level: pLevel,
+            answers_with_scores: finalAnswers.map(a => ({
+              questionNumber: a.question.number,
+              category: a.question.category,
+              content: a.question.content,
+              answer: a.answer,
+              score: a.result.score,
+              feedback: a.result.feedback,
+            })),
+          }),
+          signal: fbController.signal,
+        })
+        clearTimeout(fbTimeout)
 
-      if (!patchRes.ok) {
-        const patchErr = await patchRes.json()
-        console.error('[PATCH Error]', patchErr)
-        // エラーでも summary ページは表示（ステータス更新失敗でも続行）
-        console.warn('Failed to update session status, but continuing to summary')
-      } else {
-        console.log('[Session Completed]', await patchRes.json())
+        if (fbRes.ok) {
+          const fbData = await fbRes.json()
+          overallFeedbackText = fbData.overall_feedback ?? ''
+        } else {
+          console.warn('[Feedback API Error]', fbRes.status)
+        }
+      } catch (fbErr) {
+        if (fbErr instanceof Error && fbErr.name === 'AbortError') {
+          console.warn('[Feedback Generation Timeout] API response took too long')
+        } else {
+          console.warn('[Feedback Generation Error]', fbErr)
+        }
+      }
+      setOverallFeedback(overallFeedbackText)
+
+      // セッション完了 — ステータスを completed に設定（タイムアウト保護: 15秒）
+      try {
+        const patchController = new AbortController()
+        const patchTimeout = setTimeout(() => patchController.abort(), 15000)
+
+        const patchRes = await fetch('/api/design/sessions', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            question_scores,
+            overall_feedback: overallFeedbackText,
+            status: 'completed'
+          }),
+          signal: patchController.signal,
+        })
+        clearTimeout(patchTimeout)
+
+        if (!patchRes.ok) {
+          const patchErr = await patchRes.json()
+          console.error('[PATCH Error]', patchErr)
+          console.warn('Failed to update session status, but continuing to summary')
+        } else {
+          console.log('[Session Completed]', await patchRes.json())
+        }
+      } catch (patchErr) {
+        if (patchErr instanceof Error && patchErr.name === 'AbortError') {
+          console.warn('[Session Status Update Timeout]')
+        } else {
+          console.warn('[Session Status Update Error]', patchErr)
+        }
       }
 
       // サマリーページへ移動 — ここで complete と判定
