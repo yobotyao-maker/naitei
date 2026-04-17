@@ -23,7 +23,7 @@ export default function AdminSidebar({ adminEmail }: { adminEmail: string }) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-52 shrink-0 min-h-screen bg-white border-r border-gray-100 flex flex-col">
+    <aside className="fixed left-0 top-0 w-52 h-screen bg-white border-r border-gray-100 flex flex-col">
       <div className="px-5 py-5 border-b border-gray-100 flex items-center gap-2">
         <Image src="/logo.svg" alt="" width={28} height={28} />
         <span className="text-sm font-semibold text-gray-900 tracking-tight">Admin</span>

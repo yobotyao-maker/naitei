@@ -50,3 +50,37 @@ export async function GET(
 
   return NextResponse.json({ session: found, answers: answersWithQuestion })
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !await isAdmin(supabase, user.id))
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id } = await params
+  const body = await req.json()
+  const { status, p_level, interviewee_eid, department } = body
+
+  try {
+    const { data, error } = await supabase
+      .from('design_sessions')
+      .update({
+        ...(status !== undefined && { status }),
+        ...(p_level !== undefined && { p_level }),
+        ...(interviewee_eid !== undefined && { interviewee_eid }),
+        ...(department !== undefined && { department }),
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return NextResponse.json(data)
+  } catch (e: any) {
+    console.error('[PATCH Error]', e)
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
+}

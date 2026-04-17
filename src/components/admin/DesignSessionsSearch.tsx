@@ -33,6 +33,8 @@ export default function DesignSessionsSearch() {
   const [detail, setDetail] = useState<Record<string, any> | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [selectedAnswer, setSelectedAnswer] = useState<Record<string, any> | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editData, setEditData] = useState<any>({})
 
   // フィルター状態
   const [eid, setEid] = useState('')
@@ -71,10 +73,39 @@ export default function DesignSessionsSearch() {
     setDetailLoading(true)
     const res  = await fetch(`/api/admin/user-detail/${session.user_id}`)
     const data = await res.json()
-    // 該当セッションの answers を取得
     const ds = (data.design_sessions ?? []).find((s: any) => s.id === session.id)
     setDetail(ds ?? null)
     setDetailLoading(false)
+  }
+
+  const startEdit = (session: Session) => {
+    setEditingId(session.id)
+    setEditData({
+      interviewee_eid: session.interviewee_eid ?? '',
+      p_level: session.p_level,
+      department: session.department ?? '',
+    })
+  }
+
+  const saveEdit = async () => {
+    if (!editingId) return
+    try {
+      const res = await fetch(`/api/admin/design-sessions/${editingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      })
+      if (!res.ok) throw new Error('Update failed')
+
+      setRows(rows.map(r =>
+        r.id === editingId
+          ? { ...r, ...editData }
+          : r
+      ))
+      setEditingId(null)
+    } catch (e) {
+      alert('更新に失敗しました: ' + (e as any).message)
+    }
   }
 
   const totalPages = total != null ? Math.ceil(total / 50) : 0
@@ -207,6 +238,66 @@ export default function DesignSessionsSearch() {
             {/* ── 展開詳細 ── */}
             {expanded === s.id && (
               <div className="bg-gray-50 px-5 py-4 border-t border-gray-100">
+                {editingId === s.id && (
+                  <div className="bg-white rounded-lg p-4 mb-4 border border-blue-200 space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 block mb-1">面談対象者 EID</label>
+                        <input
+                          type="text"
+                          value={editData.interviewee_eid}
+                          onChange={e => setEditData({ ...editData, interviewee_eid: e.target.value })}
+                          className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400"
+                          placeholder="例: wenxiong.yao"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 block mb-1">P レベル</label>
+                        <select
+                          value={editData.p_level}
+                          onChange={e => setEditData({ ...editData, p_level: e.target.value })}
+                          className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400 bg-white"
+                        >
+                          <option value="P1">P1</option>
+                          <option value="P2">P2</option>
+                          <option value="P3">P3</option>
+                          <option value="P4">P4</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 block mb-1">部署</label>
+                        <input
+                          type="text"
+                          value={editData.department}
+                          onChange={e => setEditData({ ...editData, department: e.target.value })}
+                          className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-blue-400"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 px-3 py-1 rounded transition-colors"
+                      >
+                        キャンセル
+                      </button>
+                      <button
+                        onClick={saveEdit}
+                        className="text-xs bg-blue-500 text-white hover:bg-blue-600 px-3 py-1 rounded transition-colors"
+                      >
+                        保存
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {editingId !== s.id && (
+                  <button
+                    onClick={() => startEdit(s)}
+                    className="text-xs text-blue-600 hover:text-blue-700 mb-4 border border-blue-200 hover:border-blue-400 px-3 py-1 rounded transition-colors"
+                  >
+                    編集
+                  </button>
+                )}
                 {detailLoading ? (
                   <p className="text-xs text-gray-400 text-center py-2">読み込み中...</p>
                 ) : (

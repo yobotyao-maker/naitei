@@ -56,7 +56,12 @@ export default function DesignSummary({
         @media print {
           body * { visibility: hidden; }
           #design-summary-print, #design-summary-print * { visibility: visible; }
-          #design-summary-print { position: fixed; top: 0; left: 0; width: 100%; height: 100%; padding: 20px; background: white; }
+          #design-summary-print {
+            position: static;
+            width: 100%;
+            padding: 0;
+            background: white;
+          }
           .no-print { display: none !important; }
         }
         @page { size: A4; margin: 15mm; }
