@@ -1,12 +1,14 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import Logo from '@/components/Logo'
 import { supabaseBrowser } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
 
 type Mode = 'signin' | 'signup' | 'forgot'
 
-export default function AuthPage() {
+function AuthPageContent() {
   const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -14,6 +16,8 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/course-select'
 
   const switchMode = (m: Mode) => { setMode(m); setError(''); setResetSent(false) }
 
@@ -38,11 +42,11 @@ export default function AuthPage() {
       if (error) { setError(error.message); setLoading(false); return }
       const res = await fetch('/api/me')
       const me = await res.json()
-      router.push(me.isAdmin ? '/admin' : '/course-select')
+      router.push(me.isAdmin ? '/admin' : redirect)
     } else {
       const { error } = await supabaseBrowser.auth.signUp({ email, password })
       if (error) { setError(error.message); setLoading(false); return }
-      router.push('/course-select')
+      router.push(redirect)
     }
   }
 
@@ -154,5 +158,13 @@ export default function AuthPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">Loading...</div>}>
+      <AuthPageContent />
+    </Suspense>
   )
 }

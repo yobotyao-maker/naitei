@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 403 })
+    }
+
     const body = await req.json()
     const { question_number, question_content, feedback_text, rating, feedback_type } = body
 
@@ -13,16 +20,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Use service role key for backend operations
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
     const { data, error } = await supabase
       .from('design_feedback')
       .insert({
-        session_id: null, // Optional: can be null
+        user_id: user.id,
+        session_id: null,
         question_number,
         question_content: question_content || null,
         feedback_text: feedback_text.trim(),

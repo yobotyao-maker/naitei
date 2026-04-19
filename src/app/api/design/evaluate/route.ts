@@ -5,11 +5,15 @@ import { buildDesignEvalPrompt, buildDesignOverallFeedbackPrompt } from '@/lib/d
 
 const client = new Anthropic()
 
-// POST /api/design/evaluate — 単一問題の AI 採点（ログイン不要）
+// POST /api/design/evaluate — 単一問題の AI 採点
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 403 })
+    }
 
     const {
       session_id,
@@ -46,9 +50,8 @@ export async function POST(req: NextRequest) {
       throw new Error('Claude returned invalid JSON')
     }
 
-    // ログイン済みユーザーの回答を DB に保存
-    if (user && session_id) {
-      // セッションから EID を取得して回答行に付与
+    // セッションから EID を取得して回答行に付与
+    if (session_id) {
       const { data: sessionData } = await supabase
         .from('design_sessions')
         .select('interviewee_eid, interviewer_eid')
@@ -82,9 +85,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT /api/design/evaluate — 全問完了後の総合フィードバック生成（ログイン不要）
+// PUT /api/design/evaluate — 全問完了後の総合フィードバック生成
 export async function PUT(req: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 403 })
+    }
+
     const { selected_domains, total_score, p_level, answers_with_scores } = await req.json()
 
     const prompt = buildDesignOverallFeedbackPrompt({
