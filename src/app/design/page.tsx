@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import LogoutButton from '@/components/LogoutButton'
@@ -55,6 +55,22 @@ export default function DesignPage() {
   const [showFeedback, setShowFeedback] = useState(false)
   const [pendingFeedback, setPendingFeedback] = useState<string>('')
   const [showTimeoutAlert, setShowTimeoutAlert] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      try {
+        const res = await fetch('/api/me')
+        const data = await res.json()
+        if (data.user?.email) {
+          setUserEmail(data.user.email)
+        }
+      } catch (e) {
+        console.error('Failed to fetch user email:', e)
+      }
+    }
+    fetchUserEmail()
+  }, [])
 
   // ── Step 1 → 2: 背景評価完了 ──────────────────────────────
   const handleBackgroundSubmit = (data: BackgroundData) => {
@@ -356,7 +372,7 @@ export default function DesignPage() {
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Logo />
+            <Logo href="/" />
             <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">設計コース</span>
           </div>
           <div className="flex items-center gap-4">
@@ -373,6 +389,11 @@ export default function DesignPage() {
               >
                 💬
               </button>
+            )}
+            {userEmail && (
+              <span className="text-xs text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-200">
+                {userEmail}
+              </span>
             )}
             <LogoutButton />
           </div>
