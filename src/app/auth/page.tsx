@@ -17,7 +17,7 @@ function AuthPageContent() {
   const [resetSent, setResetSent] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') || '/course-select'
+  const redirect = searchParams.get('redirect') || '/design'
 
   const switchMode = (m: Mode) => { setMode(m); setError(''); setResetSent(false) }
 
